@@ -26,9 +26,11 @@
         </div>
 
         <!-- Bagian Kanan: Gambar -->
-        <div class="hidden w-1/2 bg-center bg-cover rounded-l-3xl lg:flex"
-            style="background-image: url('https://s3-alpha-sig.figma.com/img/4809/8fe8/b8844f20b3e5b0b80094e74c7cd38919?Expires=1742774400&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=IA0ahPhGOKO-lGKQND5m4XPyk0WvhqIyC9Ws7BF4t9DQQjZHRdks81MqO8rCPVezOCxiUfai99mb0SyPk2EtD-RI7EuGdNUL-1s4MkHSjY5m~AfMb~2RVl35IyfMUrtpkaI0b0obJDTXU4dyyKB~8qZ1jtBHHwhfwRfzwcuzl-fwsFtEErgPSxwYDMlprLmMmfs6pegkyBQjhSqhW1VaJX23eZ-lixsIpvK-6UDkvJ7Do3J1x~V6NhPhl7oVj-48DiQ-H-Mzo26qJYTx5sjRgCHH8UPKolPSpvcjteWUDD6EKmFsUNfzW9Jkthj0SgG843qGb9gXpxEQBuYXbgkHCg__');">
+        <div "
+            style="background-image: url();">
         </div>
+
+        <img class="hidden w-1/2 bg-center bg-cover rounded-l-2xl lg:flex" src="images/bungacincin.jpg" alt="">
     </div>
 </body>
 

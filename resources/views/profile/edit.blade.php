@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">
+    {{-- <x-slot name="header">
         <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
             {{ __('Profile') }}
         </h2>
@@ -25,18 +25,23 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> --}}
 
     <!-- Versi Padi Melati !-->
 
-    {{-- <div class="flex items-center h-[50vh] px-10 bg-primary">
+
+    <!-- *** Main ***-->
+
+    <div class="flex items-center h-[50vh] px-10 bg-primary">
     </div>
 
     <div class="max-w-3xl mx-auto mt-[-200px]" x-data="{ tab: 'personal' }">
         <div class="relative p-6 text-center bg-white rounded-lg shadow-lg">
-            <img src="https://s3-alpha-sig.figma.com/img/57df/b50c/1455a252e4ccd3a53724479f36aed26b?Expires=1742774400&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=QiNaVuJ8sXl6PzI~M7Za5qtzOGmVlw6NMQe8XrCCXLkDwLee8OSaIfbeTEma42RWufye6UqAP2uWhzqbFo~a1Vg4RdkBLVXepXyFbrdzLazPiaVjPVA5cnrSyJfTJrhiuPjguhd~1xIS~h1VF0VfHOkCXBTiyQs9U5x8Mp9I0sK35r8e1W7Mtbz5HqmCvpxY0l8-14D-9MkXuzBLTtPhhvZavPHO2XSdtzePTK~pkd3c9IXHVV-N8FgDNSi4753skhxUFd-HBeMaQ~K~oXqL9QtgZbjp18ePp2md3oSzkoFSftCCOiS-7xLGcqJFUfciDiYpZB0cL7EErFeeZhMsug__"
-                class="mx-auto -mt-16 border-4 border-white rounded-full w-52 h-52" alt="Profile">
-            <h2 class="mt-4 text-xl font-bold">Fahrudin Arianto</h2>
+            <img src="images/fotodummy.jpg" class="mx-auto -mt-16 border-4 border-white rounded-full w-52 h-52"
+                alt="Profile">
+            @auth
+                <h2 class="mt-4 text-xl font-bold">{{ Auth::user()->name }}</h2>
+            @endauth
             <p class="text-gray-500">Pengguna</p>
 
             <div class="flex justify-center mt-4 border-b">
@@ -46,30 +51,160 @@
                     :class="{ 'border-black font-bold': tab === 'akun' }">Akun</button>
             </div>
 
-            <div class="mt-4">
-                <p x-show="tab === 'personal'">Ini personal</p>
-                <p x-show="tab === 'akun'">Ini akun</p>
-            </div>
+            <form class="mt-6" method="POST" action="{{ route('logout') }}">
+                @csrf
+                <x-danger-button :href="route('logout')"
+                    onclick="event.preventDefault();
+                this.closest('form').submit();">
+                    {{ __('Keluar') }}
+                </x-danger-button>
+            </form>
 
-            <button class="px-4 py-2 mt-6 text-white bg-red-500 rounded-lg">Keluar</button>
         </div>
 
         <div x-show="tab === 'akun'" class="p-6 mt-6 bg-white rounded-lg shadow-lg">
             <div class="space-y-4">
-                <div class="flex items-center p-2 border rounded-lg">
-                    <input type="text" class="w-full outline-none" value="fahrudinar@mail.com" readonly>
-                    <span class="ml-2">✏️</span>
+                <x-input-label for="email" :value="__('Email')" />
+                <div class="flex items-center">
+                    <x-text-input id="email" name="email" type="email" readonly class="block w-full"
+                        :value="old('email', $user->email)" required autocomplete="username" />
+                    <x-input-error class="mt-2" :messages="$errors->get('email')" />
+                    <span class="ml-2 cursor-pointer" x-data=""
+                        x-on:click.prevent="$dispatch('open-modal', 'email-edit')">✏️</span>
                 </div>
-                <div class="flex items-center p-2 border rounded-lg">
-                    <input type="text" class="w-full outline-none" value="Fahrudinar" readonly>
-                    <span class="ml-2">✏️</span>
+
+                <x-input-label for="name" :value="__('Nama')" />
+                <div class="flex items-center">
+                    <x-text-input readonly id="name" name="name" type="text" class="block w-full"
+                        :value="old('name', $user->name)" required autofocus autocomplete="name" />
+                    <x-input-error class="mt-2" :messages="$errors->get('name')" />
+                    <span class="ml-2 cursor-pointer" x-data=""
+                        x-on:click.prevent="$dispatch('open-modal', 'nama-edit')">✏️</span>
                 </div>
-                <div class="flex items-center p-2 border rounded-lg">
-                    <input type="password" class="w-full outline-none" value="********" readonly>
-                    <span class="ml-2">✏️</span>
+
+                <x-input-label for="password" :value="__('Kata sandi')" />
+                <div class="flex items-center">
+                    <x-text-input readonly value="***********" id="update_password_current_password"
+                        name="current_password" type="password" class="block w-full" autocomplete="current-password" />
+                    <x-input-error :messages="$errors->updatePassword->get('current_password')" class="mt-2" />
+                    <span class="ml-2 cursor-pointer" x-data=""
+                        x-on:click.prevent="$dispatch('open-modal', 'password-edit')">
+                        ✏️</span>
                 </div>
             </div>
         </div>
-    </div> --}}
+
+
+
+        <!-- *** Modals ***-->
+
+
+        <!--Modals Email-->
+        <x-modal name="email-edit">
+            <form method="post" action="{{ route('profile.update') }}" class="p-6">
+                @csrf
+                @method('patch')
+
+                <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                    {{ __('Ubah Alamat Email') }}
+                </h2>
+
+                @auth
+                    <p class="mt-1 text-sm text-gray-900 dark:text-gray-400">
+
+                        Email Anda saat ini adalah <span class="text-blue-700 underline">{{ Auth::user()->email }} </span>
+                        Ingin menggantinya dengan email
+                        lain?
+                    </p>
+                @endauth
+
+                <div>
+                    <x-text-input placeholder="Alamat Email" id="email" class="block w-full mt-1" type="email"
+                        name="email" :value="old('email')" required autocomplete="username" />
+                    <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                </div>
+
+                <div class="flex items-center justify-end gap-4 mt-3">
+                    <x-primary-button>{{ __('Save') }}</x-primary-button>
+
+                    @if (session('status') === 'profile-updated')
+                        <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2000)"
+                            class="text-sm text-gray-600 dark:text-gray-400">{{ __('Saved.') }}</p>
+                    @endif
+                </div>
+            </form>
+        </x-modal>
+
+        <!--Modals Nama-->
+        <x-modal name="nama-edit">
+            <form method="post" action="{{ route('profile.update') }}" class="p-6">
+                @csrf
+                @method('patch')
+
+                <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                    {{ __('Ubah Nama') }}
+                </h2>
+
+                {{-- <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    {{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.') }}
+                </p> --}}
+
+                <div>
+                    <x-text-input placeholder="Nama" id="name" name="name" type="text"
+                        class="block w-full mt-1" :value="old('name', $user->name)" required autofocus autocomplete="name" />
+                    <x-input-error class="mt-2" :messages="$errors->get('name')" />
+                </div>
+
+                <div class="flex items-center justify-end gap-4 mt-3">
+                    <x-primary-button>{{ __('Save') }}</x-primary-button>
+
+                    @if (session('status') === 'profile-updated')
+                        <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2000)"
+                            class="text-sm text-gray-600 dark:text-gray-400">{{ __('Saved.') }}</p>
+                    @endif
+                </div>
+            </form>
+        </x-modal>
+
+        <!--Modals Password-->
+        <x-modal name="password-edit">
+            <form method="post" action="{{ route('password.update') }}" class="p-6">
+                @csrf
+                @method('put')
+
+                <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                    {{ __('Ubah Kata Sandi') }}
+                </h2>
+
+                <div>
+                    <x-text-input placeholder="Kata sandi saat ini" id="update_password_current_password"
+                        name="current_password" type="password" class="block w-full mt-1 mb-3"
+                        autocomplete="current-password" />
+                    <x-input-error :messages="$errors->updatePassword->get('current_password')" class="mt-2" />
+                </div>
+
+                <div>
+                    <x-text-input placeholder="Kata sandi baru" id="update_password_password" name="password"
+                        type="password" class="block w-full mt-1 mb-3" autocomplete="new-password" />
+                    <x-input-error :messages="$errors->updatePassword->get('password')" class="mt-2" />
+                </div>
+
+                <div>
+                    <x-text-input placeholder="Konfirmasi kata sandi" id="update_password_password_confirmation"
+                        name="password_confirmation" type="password" class="block w-full mt-1 mb-3"
+                        autocomplete="new-password" />
+                    <x-input-error :messages="$errors->updatePassword->get('password_confirmation')" class="mt-2" />
+                </div>
+
+                <div class="flex items-end justify-end gap-4">
+                    <x-primary-button>{{ __('Simpan') }}</x-primary-button>
+                    @if (session('status') === 'password-updated')
+                        <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2000)"
+                            class="text-sm text-gray-600 dark:text-gray-400">{{ __('Saved.') }}</p>
+                    @endif
+                </div>
+            </form>
+        </x-modal>
+    </div>
 
 </x-app-layout>

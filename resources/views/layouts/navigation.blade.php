@@ -4,9 +4,7 @@
             <div class="flex">
                 <div class="flex items-center shrink-0">
                     <a href="{{ route('welcome') }}">
-                        {{-- <x-application-logo class="block w-auto text-gray-800 fill-current h-9 dark:text-gray-200" /> --}}
-                        <img src="https://s3-alpha-sig.figma.com/img/7369/3d11/b4824a879c56a6e13b26909e5d9ab855?Expires=1742774400&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=Cs373CvsC-IyHSYzhTwCj~ENZu5aTNImxgjwzVg2NTC9Pg2nLQ~gweLn8CrRQWQabF0atvFd~r6r9XQFBR4fx4OtL6hpE1lVugq4dHzIPa222oAjulAWX60Zlqb1hxrcXpdvCHHFAtBpwsIIKnumrXL28iEQyCp1mEocfugDNyige58CEPCKlI4YVJ927zjew4pdmU7W4vrT6P-vsI-3YlFt6Ea69I6Y6BAQYvh4Y-BKxrDva-8M3x0RJFKCUaQvDK3un0ML54BL57aTm7u-vHwAxu8jgDnjctT9gfAYFBPIbLtfO1ipN6MaFsd2M4dG9fIBs9FNBGPpevDtriwVog__"
-                            alt="logo" class="w-40">
+                        <img src="images/navigationlogo.png" alt="logo" class="w-40">
                     </a>
                 </div>
 
@@ -21,11 +19,22 @@
                 <x-nav-link :href="route('welcome')" :active="request()->routeIs('welcome')">
                     {{ __('Beranda') }}
                 </x-nav-link>
-                <x-nav-link :href="route('pendaftaran')" :active="request()->routeIs('pendaftaran')">
-                    {{ __('Pendaftaran') }}
-                </x-nav-link>
+                @cannot('admin')
+                    <x-nav-link :href="route('pendaftaran')" :active="request()->routeIs('pendaftaran')">
+                        {{ __('Pendaftaran') }}
+                    </x-nav-link>
+                @endcannot
+                @can('admin')
+                    <x-nav-link :href="route('data-pendaftar')" :active="request()->routeIs('data-pendaftar')">
+                        {{ __('Data Pendaftar') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('data-cocok')" :active="request()->routeIs('data-cocok')">
+                        {{ __('Data Cocok') }}
+                    </x-nav-link>
+                @endcan
+
                 @auth
-                    <x-nav-link :href="route('profile.edit')">
+                    <x-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.edit')">
                         {{ __('Profile') }}
                     </x-nav-link>
                     {{-- <x-dropdown align="right" width="48">
@@ -85,11 +94,11 @@
     </div>
 
     <div :class="{ 'block': open, 'hidden': !open }" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1">
+        {{-- <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-        </div>
+        </div> --}}
 
         <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
             @auth

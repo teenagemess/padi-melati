@@ -8,7 +8,7 @@
         <h1 class="mb-1 text-5xl font-bold text-white dark:text-white">
             Selamat Datang!
         </h1>
-        <p class="mb-6 text-center text-white dark:text-gray-300">
+        <p class="mb-20 text-center text-white dark:text-gray-300">
             Masukkan kredensial Anda untuk mengakses akun Anda
         </p>
 
