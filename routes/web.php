@@ -26,6 +26,9 @@ Route::middleware('admin')->group(function(){
     Route::get('/data-cocok', function(){
         return view('frontend.data-cocok.index');
     })->name('data-cocok');
+    Route::get('/datapersonal', function(){
+        return view('frontend.data-pendaftar.show');
+    });
 });
 
 require __DIR__.'/auth.php';
