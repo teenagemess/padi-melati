@@ -34,5 +34,15 @@ class DatabaseSeeder extends Seeder
             'remember_token' => Str::random(10),
             'is_admin' => false
         ]);
+
+        User::factory()->create([
+            'name' => 'Raynanda Aqiyas1',
+            'email' => 'rpramardika1@gmail.com',
+            'email_verified_at' => now(),
+            'username' => 'tokyogetto1',
+            'password' => 'password',
+            'remember_token' => Str::random(10),
+            'is_admin' => false
+        ]);
     }
 }

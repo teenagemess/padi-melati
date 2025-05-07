@@ -20,7 +20,7 @@
                     {{ __('Beranda') }}
                 </x-nav-link>
                 @cannot('admin')
-                    <x-nav-link :href="route('pendaftaran')" :active="request()->routeIs('pendaftaran')">
+                    <x-nav-link :href="route('pendaftaran.index')" :active="request()->routeIs('pendaftaran')">
                         {{ __('Pendaftaran') }}
                     </x-nav-link>
                 @endcannot

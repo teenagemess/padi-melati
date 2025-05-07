@@ -34,13 +34,9 @@
             misi_pernikahan: '',
             cita_pernikahan: ''
         },
-        updateRiwayatPenyakit(event, penyakit) {
-            if (event.target.checked) {
-                if (!this.formData.riwayat_penyakit.includes(penyakit)) {
-                    this.formData.riwayat_penyakit.push(penyakit);
-                }
-            } else {
-                this.formData.riwayat_penyakit = this.formData.riwayat_penyakit.filter(item => item !== penyakit);
+        addRiwayatPenyakit(penyakit) {
+            if (!this.formData.riwayat_penyakit.includes(penyakit)) {
+                this.formData.riwayat_penyakit.push(penyakit);
             }
         },
         removeRiwayatPenyakit(penyakit) {
@@ -63,7 +59,7 @@
             }
         }
     }" class="flex justify-center min-h-[80vh] bg-primary">
-        <div class="w-full p-12 pt-24 bg-[#D9D9D9] max-w-7xl rounded-b-xl">
+        <div class="w-full p-12 bg-[#D9D9D9] max-w-7xl rounded-b-xl">
             <!-- Judul Dinamis -->
             <template x-show="tab === 'informasi'">
                 <h2 class="mb-6 text-4xl font-semibold text-start mt-14">Informasi Pendaftaran</h2>
@@ -93,11 +89,11 @@
             </div>
 
             <!-- Kontainer Utama -->
-            <form action="{{ route('pendaftaran.store') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <div class="flex flex-col items-center gap-4">
+            <div class="flex flex-col items-center gap-4">
+                <form action="{{ route('pendaftaran.store') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
                     <div x-show="tab === 'data_diri'">
-                        <div class="grid w-3/4 grid-cols-2 gap-6 mt-8 md:grid-cols-2">
+                        <div class="grid w-3/4 grid-cols-1 gap-6 mt-8 md:grid-cols-2">
                             <input x-model="formData.nbm" name="nbm" type="text" placeholder="NBM"
                                 class="w-full p-3 border rounded-lg" required>
                             <input x-model="formData.nama_peserta" name="nama_peserta" type="text" placeholder="Nama"
@@ -161,9 +157,10 @@
                                         x-for="penyakit in ['Asma', 'Hipertensi', 'Kanker', 'Gangguan Kejiwaan', 'Penyakit Jantung', 'Epilepsi', 'Diabetes']"
                                         :key="penyakit">
                                         <label>
-                                            <input type="checkbox" name="riwayat_penyakit[]" :value="penyakit"
-                                                x-model="formData.riwayat_penyakit"
-                                                @change="updateRiwayatPenyakit($event, penyakit)" class="mr-1">
+                                            <input type="checkbox" x-model="formData.riwayat_penyakit"
+                                                :value="penyakit"
+                                                @change="formData.riwayat_penyakit.includes(penyakit) ? removeRiwayatPenyakit(penyakit) : addRiwayatPenyakit(penyakit)"
+                                                class="mr-1">
                                             <span x-text="penyakit"></span>
                                         </label>
                                     </template>
@@ -186,6 +183,7 @@
                                 <button type="button" class="mt-2 text-sm text-blue-600 hover:underline">+ Tambahkan
                                     riwayat organisasi</button>
                             </div>
+
                         </div>
                     </div>
 
@@ -225,9 +223,9 @@
                                         x-for="item in ['Beriman', 'Seiman', 'Rajin', 'Setia', 'Sabar', 'Bertanggungjawab', 'Jujur', 'Sederhana', 'Ramah', 'Tertutup', 'Supel', 'Perhatian', 'Romantis', 'Cuek', 'Berpendidikan', 'Berpengalaman', 'Penurut', 'Ikhlas']"
                                         :key="item">
                                         <label>
-                                            <input type="checkbox" name="karakteristik_diri[]"
-                                                x-model="formData.karakteristik_diri" :value="item"
-                                                class="mr-2">
+                                            <input type="checkbox"
+                                                :checked="formData.karakteristik_diri.includes(item)"
+                                                @change="toggleKarakteristikDiri(item)" class="mr-2">
                                             <span x-text="item"></span>
                                         </label>
                                     </template>
@@ -243,9 +241,9 @@
                                         x-for="item in ['Beriman', 'Seiman', 'Rajin', 'Setia', 'Sabar', 'Bertanggungjawab', 'Jujur', 'Sederhana', 'Ramah', 'Tertutup', 'Supel', 'Perhatian', 'Romantis', 'Cuek', 'Berpendidikan', 'Berpengalaman', 'Penurut', 'Ikhlas', 'Seumuran', 'Lebih Tua', 'Lebih Muda', 'Tidak Memandang Usia']"
                                         :key="item">
                                         <label>
-                                            <input type="checkbox" name="karakteristik_pasangan[]"
-                                                x-model="formData.karakteristik_pasangan" :value="item"
-                                                class="mr-2">
+                                            <input type="checkbox"
+                                                :checked="formData.karakteristik_pasangan.includes(item)"
+                                                @change="toggleKarakteristikPasangan(item)" class="mr-2">
                                             <span x-text="item"></span>
                                         </label>
                                     </template>
@@ -253,31 +251,24 @@
                                         name="karakteristik_pasangan_lain" placeholder="Lainnya"
                                         class="w-full p-2 mt-2 border rounded-md">
                                 </div>
+                                <x-primary-button type="submit" class="mt-6">Kirim</x-primary-button>
                             </div>
                         </div>
                     </div>
+                </form>
 
-
-                    <div x-show="tab === 'pandangan'">
-                        <div class="w-3/4 mt-8 space-y-4">
-                            <input x-model="formData.visi_pernikahan" name="visi_pernikahan" type="text"
-                                placeholder="Visi Pernikahan" class="w-full p-3 border rounded-lg">
-                            <input x-model="formData.misi_pernikahan" name="misi_pernikahan" type="text"
-                                placeholder="Misi Pernikahan" class="w-full p-3 border rounded-lg">
-                            <input x-model="formData.cita_pernikahan" name="cita_pernikahan" type="text"
-                                placeholder="Cita-cita Pernikahan" class="w-full p-3 border rounded-lg">
-                        </div>
-
-                    </div>
-
-                </div>
                 <div x-show="tab === 'pandangan'">
-                    <div class="flex justify-between mt-6">
-                        <x-secondary-button @click="tab = 'karakteristik'">Kembali</x-secondary-button>
-                        <x-primary-button type="submit">Kirim</x-primary-button>
+                    <div class="w-3/4 mt-8 space-y-4">
+                        <input x-model="formData.visi_pernikahan" name="visi_pernikahan" type="text"
+                            placeholder="Visi Pernikahan" class="w-full p-3 border rounded-lg">
+                        <input x-model="formData.misi_pernikahan" name="misi_pernikahan" type="text"
+                            placeholder="Misi Pernikahan" class="w-full p-3 border rounded-lg">
+                        <input x-model="formData.cita_pernikahan" name="cita_pernikahan" type="text"
+                            placeholder="Cita-cita Pernikahan" class="w-full p-3 border rounded-lg">
                     </div>
                 </div>
-            </form>
+            </div>
+
             <!-- Navigasi pada tab "daftar" -->
             <div x-show="tab === 'data_diri'">
                 <div class="flex justify-between mt-6">
@@ -303,6 +294,12 @@
             </div>
 
             <!-- Navigasi pada tab "karakteristik" -->
+            <div x-show="tab === 'pandangan'">
+                <div class="flex justify-between mt-6">
+                    <x-secondary-button @click="tab = 'karakteristik'">Kembali</x-secondary-button>
+                    <x-primary-button type="submit">Kirim</x-primary-button>
+                </div>
+            </div>
         </div>
     </div>
 

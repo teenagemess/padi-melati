@@ -3,9 +3,10 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
@@ -21,7 +22,7 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
-        'image'
+        'image',
     ];
 
     /**
@@ -46,5 +47,21 @@ class User extends Authenticatable
             'is_admin' => 'boolean',
             'password' => 'hashed',
         ];
+    }
+    public function pandanganNikah(): HasOne
+    {
+        return $this->hasOne(PandanganNikah::class);
+    }
+    public function orangTua(): HasOne
+    {
+        return $this->hasOne(Orangtua::class);
+    }
+    public function kriteria(): HasOne
+    {
+        return $this->hasOne(Kriteria::class);
+    }
+    public function dataDiri(): HasOne
+    {
+        return $this->hasOne(Datadiri::class);
     }
 }
