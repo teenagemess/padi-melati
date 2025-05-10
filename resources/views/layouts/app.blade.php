@@ -16,6 +16,8 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     {{-- @vite('resources/css/app.css') --}}
+
+    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 </head>
 
 <body class="font-sans antialiased bg-gray-200">
@@ -38,6 +40,8 @@
 
 
     </div>
+
+    <script src="{{ asset('js/app.js') }}"></script>
 </body>
 
 </html>

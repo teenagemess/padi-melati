@@ -25,7 +25,7 @@
                     </x-nav-link>
                 @endcannot
                 @can('admin')
-                    <x-nav-link :href="route('data-pendaftar')" :active="request()->routeIs('data-pendaftar')">
+                    <x-nav-link :href="route('data-pendaftar.index')" :active="request()->routeIs('data-pendaftar.index')">
                         {{ __('Data Pendaftar') }}
                     </x-nav-link>
                     <x-nav-link :href="route('data-cocok')" :active="request()->routeIs('data-cocok')">

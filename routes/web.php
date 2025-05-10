@@ -24,7 +24,8 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware('admin')->group(function () {
-    Route::get('/data-pendaftar', [DataPendaftarController::class, 'index'])->name('data-pendaftar');
+    Route::get('/data-pendaftar', [DataPendaftarController::class, 'index'])->name('data-pendaftar.index');
+    Route::get('/data-pendaftar/{id}', [DataPendaftarController::class, 'show'])->name('data-pendaftar.show');
     Route::get('/data-cocok', function () {
         return view('frontend.data-cocok.index');
     })->name('data-cocok');

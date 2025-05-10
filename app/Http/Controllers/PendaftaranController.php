@@ -17,7 +17,12 @@ class PendaftaranController extends Controller
      */
     public function index()
     {
-        return view('frontend.pendaftaran.index');
+        // Check if the current user has already completed registration
+        $hasRegistered = Datadiri::where('user_id', Auth::id())->exists();
+
+        return view('frontend.pendaftaran.index', [
+            'hasRegistered' => $hasRegistered
+        ]);
     }
 
     /**
@@ -33,6 +38,12 @@ class PendaftaranController extends Controller
      */
     public function store(Request $request)
     {
+        // First check if user has already registered
+        if (Datadiri::where('user_id', Auth::id())->exists()) {
+            return redirect()->route('pendaftaran.index')
+                ->with('error', 'Anda telah mengisi data pendaftaran sebelumnya');
+        }
+
         // Validasi data
         $request->validate([
             // 'nbm' => 'required',
@@ -40,17 +51,17 @@ class PendaftaranController extends Controller
             // 'tempat_lahir' => 'required',
             // 'tanggal_lahir' => 'required|date',
             // 'jenis_kelamin' => 'required',
-            // 'status' => 'required',
-            // 'tinggi_badan' => 'required',
-            // 'berat_badan' => 'required',
+            // 'status' => 'required', // matches the form field name
+            // 'tinggi_badan' => 'required|numeric',
+            // 'berat_badan' => 'required|numeric',
             // 'alamat' => 'required',
             // 'no_telepon' => 'required',
             // 'pendidikan' => 'required',
             // 'pekerjaan' => 'required',
             // 'penghasilan' => 'required',
-            // 'riwayat_penyakit' => 'nullable',
+            // 'riwayat_penyakit' => 'nullable|array',
             // 'riwayat_organisasi' => 'nullable',
-            // 'ktp' => 'nullable|file|mimes:jpeg,png,pdf',
+            // // 'ktp' => 'nullable|file|mimes:jpeg,png,pdf', // Uncomment if handling file upload
             // 'nama_ayah' => 'required',
             // 'pekerjaan_ayah' => 'required',
             // 'nama_ibu' => 'required',
@@ -62,14 +73,15 @@ class PendaftaranController extends Controller
             // 'karakteristik_pasangan' => 'nullable|array',
         ]);
 
+        // Handle riwayat_penyakit data
         $riwayat_penyakit = $request->input('riwayat_penyakit', []);
         if ($request->filled('riwayat_penyakit_lain')) {
             $riwayat_penyakit[] = $request->input('riwayat_penyakit_lain');
         }
 
-        // Simpan User
+        // Simpan Data Diri
         Datadiri::create([
-            'user_id' => Auth::user()->id,
+            'user_id' => Auth::id(),
             'nama_peserta' => $request->input('nama_peserta'),
             'nbm' => $request->input('nbm'),
             'jenis_kelamin' => $request->input('jenis_kelamin'),
@@ -84,29 +96,27 @@ class PendaftaranController extends Controller
             'penghasilan' => $request->input('penghasilan'),
             'riwayat_penyakit' => json_encode($riwayat_penyakit),
             'riwayat_organisasi' => $request->input('riwayat_organisasi'),
-            'status_pernikahan' => $request->input('status'),
+            'status_pernikahan' => $request->input('status'), // matches the form field
         ]);
 
         // Simpan data Orangtua
         Orangtua::create([
-            'user_id' => Auth::user()->id,
+            'user_id' => Auth::id(),
             'nama_ayah' => $request->input('nama_ayah'),
             'pekerjaan_ayah' => $request->input('pekerjaan_ayah'),
             'nama_ibu' => $request->input('nama_ibu'),
             'pekerjaan_ibu' => $request->input('pekerjaan_ibu'),
         ]);
 
-        // // Simpan Pandangan Nikah
+        // Simpan Pandangan Nikah
         PandanganNikah::create([
-            'user_id' => Auth::user()->id,
+            'user_id' => Auth::id(),
             'visi_pernikahan' => $request->input('visi_pernikahan'),
             'misi_pernikahan' => $request->input('misi_pernikahan'),
             'cita_pernikahan' => $request->input('cita_pernikahan'),
         ]);
 
-        // Gabungkan checkbox dan input "lainnya"
-
-
+        // Process karakteristik data
         $karakteristik_diri = $request->input('karakteristik_diri', []);
         if ($request->filled('karakteristik_diri_lain')) {
             $karakteristik_diri[] = $request->input('karakteristik_diri_lain');
@@ -117,21 +127,15 @@ class PendaftaranController extends Controller
             $karakteristik_pasangan[] = $request->input('karakteristik_pasangan_lain');
         }
 
+        // Simpan Kriteria
         Kriteria::create([
             'user_id' => Auth::id(),
             'kriteria_diri' => json_encode($karakteristik_diri),
             'kriteria_pasangan' => json_encode($karakteristik_pasangan),
         ]);
 
-        // Simpan Kriteria
-        Kriteria::create([
-            'user_id' => Auth::user()->id,
-            'kriteria_diri' => json_encode($karakteristik_diri),
-            'kriteria_pasangan' => json_encode($karakteristik_pasangan),
-        ]);
-
-        return redirect()->route('pendaftaran.index'); // Sesuaikan dengan rute yang Anda inginkan
-
+        return redirect()->route('pendaftaran.index')
+            ->with('success', 'Pendaftaran berhasil disimpan');
     }
 
     /**
