@@ -16,6 +16,8 @@
                     :class="{ 'border-black font-bold': tab === 'data-orang-tua' }">Data Orang Tua</button>
                 <button @click="tab = 'kriteria-calon'" class="w-1/2 px-4 py-2 border-b-2"
                     :class="{ 'border-black font-bold': tab === 'kriteria-calon' }">Kriteria Calon</button>
+                <button @click="tab = 'pandangan-nikah'" class="w-1/2 px-4 py-2 border-b-2"
+                    :class="{ 'border-black font-bold': tab === 'pandangan-nikah' }">Pandangan Nikah</button>
             </div>
         </div>
 
@@ -152,24 +154,41 @@
                 @if ($dataDiri->kriteria)
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div>
-                            <p class="font-semibold">Pendidikan Minimal</p>
-                            <p>{{ $dataDiri->kriteria->pendidikan ?? '-' }}</p>
+                            <p class="font-semibold">Kriteria Diri</p>
+                            <p>{{ $dataDiri->kriteria->kriteria_diri ?? '-' }}</p>
                         </div>
                         <div>
-                            <p class="font-semibold">Pekerjaan</p>
-                            <p>{{ $dataDiri->kriteria->pekerjaan ?? '-' }}</p>
-                        </div>
-                        <div>
-                            <p class="font-semibold">Penghasilan Minimal</p>
-                            <p>{{ $dataDiri->kriteria->penghasilan ?? '-' }}</p>
-                        </div>
-                        <div>
-                            <p class="font-semibold">Status</p>
-                            <p>{{ $dataDiri->kriteria->status ?? '-' }}</p>
+                            <p class="font-semibold">Kriteria Pasangan</p>
+                            <p>{{ $dataDiri->kriteria->kriteria_pasangan ?? '-' }}</p>
                         </div>
                     </div>
                 @else
                     <p class="text-gray-500">Data kriteria calon belum tersedia</p>
+                @endif
+            </div>
+        </div>
+
+        <!-- Pandangan Pernikahan -->
+        <div x-show="tab === 'pandangan-nikah'" class="p-6 mt-6 bg-white rounded-lg shadow-lg">
+            <div class="space-y-4">
+                <h3 class="text-xl font-bold">Pandangan Pernikahan</h3>
+                @if ($dataDiri->pandanganNikah)
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div>
+                            <p class="font-semibold">Visi Pernikahan</p>
+                            <p>{{ $dataDiri->pandanganNikah->visi_pernikahan ?? '-' }}</p>
+                        </div>
+                        <div>
+                            <p class="font-semibold">Kriteria Pasangan</p>
+                            <p>{{ $dataDiri->pandanganNikah->misi_pernikahan ?? '-' }}</p>
+                        </div>
+                        <div>
+                            <p class="font-semibold">Cita Pernikahan</p>
+                            <p>{{ $dataDiri->pandanganNikah->cita_pernikahan ?? '-' }}</p>
+                        </div>
+                    </div>
+                @else
+                    <p class="text-gray-500">Data Pandangan Pernikahan Belum Ada</p>
                 @endif
             </div>
         </div>

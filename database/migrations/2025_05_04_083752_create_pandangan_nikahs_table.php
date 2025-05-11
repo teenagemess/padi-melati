@@ -16,7 +16,7 @@ return new class extends Migration
             $table->timestamps();
             $table->string('visi_pernikahan')->nullable();
             $table->string('misi_pernikahan')->nullable();
-            $table->string('cita_pernikahan')->nullable();
+            $table->text('cita_pernikahan')->nullable();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
         });
     }

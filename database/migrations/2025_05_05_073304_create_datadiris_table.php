@@ -20,8 +20,8 @@ return new class extends Migration
             $table->date('tanggal_lahir')->nullable();
             $table->string('alamat')->nullable();
             $table->string('no_telepon')->nullable();
-            $table->integer('berat_badan')->nullable();
-            $table->integer('tinggi_badan')->nullable();
+            $table->string('berat_badan')->nullable();
+            $table->string('tinggi_badan')->nullable();
             $table->string('ktp_file')->nullable();
             $table->string('riwayat_penyakit')->nullable();
             $table->string('riwayat_organisasi')->nullable();

@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="min-h-screen bg-emerald-600">
+    <div class="min-h-screen bg-primary">
         <div class="container mx-auto py-36 px-28">
             <!-- Header with button -->
             <div class="flex justify-end mb-6">
