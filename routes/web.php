@@ -26,9 +26,22 @@ Route::middleware('auth')->group(function () {
 Route::middleware('admin')->group(function () {
     Route::get('/data-pendaftar', [DataPendaftarController::class, 'index'])->name('data-pendaftar.index');
     Route::get('/data-pendaftar/{id}', [DataPendaftarController::class, 'show'])->name('data-pendaftar.show');
-    Route::get('/data-cocok', function () {
-        return view('frontend.data-cocok.index');
-    })->name('data-cocok');
+    // Halaman utama data kecocokan
+    Route::get('/data-cocok', [App\Http\Controllers\PenjodohanController::class, 'index'])
+        ->name('data-cocok.index');
+
+    // Lihat rekomendasi untuk satu laki-laki
+    Route::get('/data-cocok/rekomendasi/{userId}', [App\Http\Controllers\PenjodohanController::class, 'showRekomendasi'])
+        ->name('data-cocok.rekomendasi');
+
+    // Simpan konfirmasi pasangan
+    Route::post('/data-cocok/konfirmasi', [App\Http\Controllers\PenjodohanController::class, 'konfirmasiPasangan'])
+        ->name('data-cocok.konfirmasi');
+
+    // Detail perbandingan laki-laki dan wanita
+    Route::get('/data-cocok/detail/{laki_id}/{wanita_id}', [App\Http\Controllers\PenjodohanController::class, 'detailPerbandingan'])
+        ->name('data-cocok.detail');
+
     Route::get('/datapersonal', function () {
         return view('frontend.data-pendaftar.show');
     });

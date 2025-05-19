@@ -28,7 +28,7 @@
                     <x-nav-link :href="route('data-pendaftar.index')" :active="request()->routeIs('data-pendaftar.index')">
                         {{ __('Data Pendaftar') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('data-cocok')" :active="request()->routeIs('data-cocok')">
+                    <x-nav-link :href="route('data-cocok.index')" :active="request()->routeIs('data-cocok')">
                         {{ __('Data Cocok') }}
                     </x-nav-link>
                 @endcan
