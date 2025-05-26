@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\MatchResult;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\PandanganNikah;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -58,6 +59,32 @@ class PenjodohanController extends Controller
                 ->with('error', 'Data pengguna tidak ditemukan');
         }
 
+        // Cek apakah laki-laki sudah dijodohkan
+        $existingMatch = MatchResult::where('laki_id', $userId)
+            ->where('status', 'confirmed')
+            ->first();
+
+        // Jika sudah dijodohkan, tampilkan hanya pasangan yang sudah dikonfirmasi
+        if ($existingMatch) {
+            $wanita = Datadiri::where('user_id', $existingMatch->wanita_id)->first();
+
+            if ($wanita) {
+                $matches = [
+                    [
+                        'wanita' => $wanita,
+                        'persentase' => $existingMatch->persentase_kecocokan
+                    ]
+                ];
+
+                return view('frontend.data-cocok.rekomendasi', [
+                    'lakiLaki' => $lakiLaki,
+                    'matches' => $matches,
+                    'isMatched' => true
+                ]);
+            }
+        }
+
+        // Jika belum dijodohkan, lanjutkan dengan logika pencarian rekomendasi
         // Ambil kriteria yang diinginkan laki-laki
         $kriteria = Kriteria::where('user_id', $userId)->first();
         if (!$kriteria) {
@@ -69,11 +96,16 @@ class PenjodohanController extends Controller
         $kriteriaYangDiinginkan = json_decode($kriteria->kriteria_pasangan, true) ?? [];
         $kriteriaDiriLaki = json_decode($kriteria->kriteria_diri, true) ?? [];
 
-        // Ambil semua perempuan (kecuali admin)
+        // Ambil semua perempuan (kecuali admin) yang belum dijodohkan
+        $matchedWanitaIds = MatchResult::where('status', 'confirmed')
+            ->pluck('wanita_id')
+            ->toArray();
+
         $perempuan = Datadiri::where('jenis_kelamin', 'Perempuan')
             ->whereHas('user', function ($query) {
                 $query->where('is_admin', false);
             })
+            ->whereNotIn('user_id', $matchedWanitaIds)
             ->get();
 
         // Hitung skor kecocokan untuk setiap perempuan
@@ -122,7 +154,8 @@ class PenjodohanController extends Controller
 
         return view('frontend.data-cocok.rekomendasi', [
             'lakiLaki' => $lakiLaki,
-            'matches' => $topMatches
+            'matches' => $topMatches,
+            'isMatched' => false
         ]);
     }
 
@@ -197,13 +230,18 @@ class PenjodohanController extends Controller
         $lakiKeWanita = $this->calculateMatchingScore($kriteriaPasanganLaki, $kriteriaDiriWanita);
         $wanitaKeLaki = $this->calculateMatchingScore($kriteriaPasanganWanita, $kriteriaDiriLaki);
 
+
+        // Ambil data pandangan nikah
+        $pandanganNikahLaki = $lakiLaki->pandanganNikah ?? null;
+        $pandanganNikahWanita = $wanita->pandanganNikah ?? null;
+
         // Hitung persentase kecocokan
         $totalKarakteristik = count($kriteriaPasanganLaki) + count($kriteriaPasanganWanita);
         $totalKecocokan = $lakiKeWanita + $wanitaKeLaki;
         $persentase = $totalKarakteristik > 0 ?
             round(($totalKecocokan / $totalKarakteristik) * 100) : 0;
 
-        return view('data-cocok.detail', [
+        return view('frontend.data-cocok.detail', [
             'lakiLaki' => $lakiLaki,
             'wanita' => $wanita,
             'kriteriaDiriLaki' => $kriteriaDiriLaki,
@@ -212,7 +250,9 @@ class PenjodohanController extends Controller
             'kriteriaPasanganWanita' => $kriteriaPasanganWanita,
             'lakiKeWanita' => $lakiKeWanita,
             'wanitaKeLaki' => $wanitaKeLaki,
-            'persentase' => $persentase
+            'persentase' => $persentase,
+            'pandanganNikahLaki' => $pandanganNikahLaki,
+            'pandanganNikahWanita' => $pandanganNikahWanita
         ]);
     }
 

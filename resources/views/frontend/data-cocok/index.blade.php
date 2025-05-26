@@ -4,15 +4,19 @@
         <div class="max-w-4xl mx-auto space-y-6">
             @forelse($lakiLaki as $index => $laki)
                 {{-- Card 1 --}}
-                <div class="flex items-center p-4 space-x-4 bg-gray-200 rounded-lg shadow-md">
-                    <img src="https://randomuser.me/api/portraits/men/1.jpg" class="object-cover w-16 h-16 rounded-full"
-                        alt="Foto">
-                    <div>
-                        <p class="text-lg font-bold">{{ $laki->nama_peserta }}</p>
-                        <p class="text-sm">Laki-laki</p>
+                <div class="flex items-center justify-between p-4 space-x-4 bg-gray-200 rounded-lg shadow-md">
+                    <div class="flex items-center space-x-4">
+                        <img src="https://randomuser.me/api/portraits/men/1.jpg"
+                            class="object-cover w-16 h-16 rounded-full" alt="Foto">
+                        <div>
+                            <p class="text-lg font-bold">{{ $laki->nama_peserta }}</p>
+                            <p class="text-sm">Laki-laki</p>
+                        </div>
                     </div>
 
-                    <a href="{{ route('data-cocok.rekomendasi', $laki->user_id) }}" class="btn btn-success">
+
+                    <a href="{{ route('data-cocok.rekomendasi', $laki->user_id) }}"
+                        class="px-4 py-1 bg-yellow-400 rounded-md hover:bg-yellow-500">
                         Lihat Rekomendasi
                     </a>
                 </div>

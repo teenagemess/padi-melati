@@ -1,5 +1,4 @@
 <x-app-layout>
-
     <div class="min-h-screen py-12 bg-primary">
         <div class="container px-4 mx-auto">
             <h1 class="mb-10 text-4xl font-bold text-center text-white">
@@ -25,6 +24,11 @@
                         <div class="mb-4 text-center md:mb-0">
                             <div class="text-xl font-bold text-gray-800">Level Kecocokan: {{ $match['persentase'] }}%
                             </div>
+                            @if (isset($isMatched) && $isMatched)
+                                <div class="px-4 py-2 mt-2 text-sm font-bold text-white bg-green-600 rounded-lg">
+                                    Sudah Dijodohkan
+                                </div>
+                            @endif
                         </div>
 
                         {{-- Female Participant --}}
@@ -37,16 +41,18 @@
 
                         {{-- Buttons --}}
                         <div class="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
-                            <form action="{{ route('data-cocok.konfirmasi') }}" method="POST" class="inline-block">
-                                @csrf
-                                <input type="hidden" name="laki_id" value="{{ $lakiLaki->user_id }}">
-                                <input type="hidden" name="wanita_id" value="{{ $match['wanita']->user_id }}">
-                                <input type="hidden" name="persentase" value="{{ $match['persentase'] }}">
-                                <button type="submit"
-                                    class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
-                                    Konfirmasi
-                                </button>
-                            </form>
+                            @if (!isset($isMatched) || !$isMatched)
+                                <form action="{{ route('data-cocok.konfirmasi') }}" method="POST" class="inline-block">
+                                    @csrf
+                                    <input type="hidden" name="laki_id" value="{{ $lakiLaki->user_id }}">
+                                    <input type="hidden" name="wanita_id" value="{{ $match['wanita']->user_id }}">
+                                    <input type="hidden" name="persentase" value="{{ $match['persentase'] }}">
+                                    <button type="submit"
+                                        class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                        Konfirmasi
+                                    </button>
+                                </form>
+                            @endif
 
                             <a href="{{ route('data-cocok.detail', ['laki_id' => $lakiLaki->user_id, 'wanita_id' => $match['wanita']->user_id]) }}"
                                 class="px-4 py-2 text-sm font-medium text-center text-gray-800 bg-yellow-400 rounded-lg hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500">
