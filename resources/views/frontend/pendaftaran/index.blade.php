@@ -115,27 +115,128 @@
             </div>
 
             <!-- Status tab content -->
-            <div x-show="tab === 'status'">
-                <div class="w-3/4 p-4 mx-auto mt-8 bg-white rounded-lg shadow">
-                    <template x-if="hasRegistered">
-                        <div>
-                            <h3 class="mb-4 text-xl font-semibold">Status Pendaftaran Anda</h3>
-                            <p class="mb-2 text-green-600">✓ Pendaftaran telah selesai</p>
-                            <p class="mb-4">Data Anda sedang dalam proses verifikasi oleh admin.</p>
-                            <!-- You can add more status details here as needed -->
+            <div x-show="tab === 'status'" class="font-sans">
+                <div class="w-full max-w-3xl mx-auto mt-8 bg-white border border-gray-200 rounded-lg shadow-sm">
+                    <!-- Header -->
+                    <div class="p-5 border-b border-gray-200">
+                        <h2 class="text-xl font-semibold text-gray-800">Status Pendaftaran</h2>
+                        <p class="text-sm text-gray-500">Proses pencarian pasangan hidup</p>
+                    </div>
+
+                    <!-- Progress Container - Horizontal -->
+                    <div class="p-5">
+                        <div class="flex flex-col">
+                            <!-- Progress Steps - Horizontal -->
+                            <div class="relative flex items-center justify-between mb-8">
+                                <!-- Progress Line -->
+                                <div class="absolute left-0 right-0 z-0 h-1 -translate-y-1/2 bg-gray-200 top-1/2"></div>
+
+                                <!-- Step 1 - Pendaftaran -->
+                                <div class="relative z-10 flex flex-col items-center">
+                                    <div
+                                        class="flex items-center justify-center w-8 h-8 mb-2 text-white rounded-full bg-emerald-500">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-700">Pendaftaran</span>
+                                </div>
+
+                                <!-- Step 2 - Verifikasi -->
+                                <div class="relative z-10 flex flex-col items-center">
+                                    <div
+                                        class="flex items-center justify-center w-8 h-8 mb-2 text-white rounded-full bg-emerald-500">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-700">Verifikasi</span>
+                                </div>
+
+                                <!-- Step 3 - Penjodohan -->
+                                <div class="relative z-10 flex flex-col items-center">
+                                    <div
+                                        class="flex items-center justify-center w-8 h-8 rounded-full
+                            {{ $isMatched ? 'bg-emerald-500' : 'bg-blue-500' }} text-white mb-2">
+                                        @if ($isMatched)
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20"
+                                                fill="currentColor">
+                                                <path fill-rule="evenodd"
+                                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        @else
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20"
+                                                fill="currentColor">
+                                                <path fill-rule="evenodd"
+                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        @endif
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-700">Penjodohan</span>
+                                </div>
+                            </div>
+
+                            <!-- Status Detail -->
+                            <div class="p-4 mt-6 rounded-lg bg-gray-50">
+                                @if ($isMatched)
+                                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="flex-shrink-0 text-emerald-500">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
+                                                    viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h3 class="text-lg font-medium text-gray-800">Jodoh Ditemukan!</h3>
+                                                <p class="text-sm text-gray-600">Selamat! Kami telah menemukan pasangan
+                                                    untuk Anda</p>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 text-sm md:mt-0">
+                                            <p class="text-gray-700"><span class="font-medium">Nama:</span>
+                                                {{ $matchName }}</p>
+                                            <p class="text-gray-700"><span class="font-medium">Kecocokan:</span>
+                                                {{ $matchPercentage }}%</p>
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="flex items-center space-x-3">
+                                        <div class="flex-shrink-0 text-blue-500">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-lg font-medium text-gray-800">Dalam Proses</h3>
+                                            <p class="text-sm text-gray-600">Tim kami sedang mencari pasangan yang
+                                                cocok untuk Anda</p>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
-                    </template>
-                    <template x-if="!hasRegistered">
-                        <div>
-                            <h3 class="mb-4 text-xl font-semibold">Status Pendaftaran Anda</h3>
-                            <p class="mb-2 text-red-600">✗ Anda belum melakukan pendaftaran</p>
-                            <p class="mb-4">Silakan lakukan pendaftaran terlebih dahulu.</p>
+
+                        <!-- Action Button -->
+                        <div class="flex justify-center mt-6">
+                            <button @click="tab = 'informasi'"
+                                class="px-5 py-2 text-sm font-medium text-gray-700 transition-colors bg-gray-100 rounded-md hover:bg-gray-200">
+                                Kembali ke Beranda
+                            </button>
                         </div>
-                    </template>
-                    <button @click="tab = 'informasi'"
-                        class="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600">
-                        Kembali
-                    </button>
+                    </div>
                 </div>
             </div>
 
@@ -175,7 +276,8 @@
                                 <input x-model="formData.alamat" name="alamat" type="text" placeholder="Alamat"
                                     class="w-full col-span-2 p-3 border rounded-lg" required>
                                 <input x-model="formData.no_telepon" name="no_telepon" type="tel"
-                                    placeholder="No. Telepon" class="w-full col-span-2 p-3 border rounded-lg" required>
+                                    placeholder="No. Telepon" class="w-full col-span-2 p-3 border rounded-lg"
+                                    required>
 
                                 <select x-model="formData.pendidikan" name="pendidikan"
                                     class="w-full p-3 border rounded-lg" required>

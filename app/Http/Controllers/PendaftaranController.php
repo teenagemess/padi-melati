@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Datadiri;
 use App\Models\User;
+use App\Models\Datadiri;
 use App\Models\Kriteria;
 use App\Models\Orangtua;
+use App\Models\MatchResult;
 use Illuminate\Http\Request;
 use App\Models\PandanganNikah;
 use Illuminate\Support\Facades\Auth;
@@ -15,13 +16,47 @@ class PendaftaranController extends Controller
     /**
      * Display a listing of the resource.
      */
+    // App/Http/Controllers/PendaftaranController.php
+
     public function index()
     {
         // Check if the current user has already completed registration
         $hasRegistered = Datadiri::where('user_id', Auth::id())->exists();
 
+        // Check if user is already matched
+        $isMatched = false;
+        $matchName = null;
+        $matchPercentage = null;
+
+        if ($hasRegistered) {
+            $matchResult = MatchResult::where(function ($query) {
+                $query->where('laki_id', Auth::id())
+                    ->orWhere('wanita_id', Auth::id());
+            })
+                ->where('status', 'confirmed')
+                ->first();
+
+            if ($matchResult) {
+                $isMatched = true;
+
+                // Get match details
+                if ($matchResult->laki_id == Auth::id()) {
+                    $matchUser = User::find($matchResult->wanita_id);
+                    $matchName = $matchUser->datadiri->nama_peserta ?? 'Nama Tidak Tersedia';
+                } else {
+                    $matchUser = User::find($matchResult->laki_id);
+                    $matchName = $matchUser->datadiri->nama_peserta ?? 'Nama Tidak Tersedia';
+                }
+
+                $matchPercentage = $matchResult->persentase_kecocokan;
+            }
+        }
+
         return view('frontend.pendaftaran.index', [
-            'hasRegistered' => $hasRegistered
+            'hasRegistered' => $hasRegistered,
+            'isMatched' => $isMatched,
+            'matchName' => $matchName,
+            'matchPercentage' => $matchPercentage
         ]);
     }
 
@@ -137,6 +172,7 @@ class PendaftaranController extends Controller
         return redirect()->route('pendaftaran.index')
             ->with('success', 'Pendaftaran berhasil disimpan');
     }
+
 
     /**
      * Display the specified resource.
