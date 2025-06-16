@@ -8,15 +8,15 @@
                 </button>
             </div>
 
-            <!-- Grid of cards -->
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                 @forelse ($pendaftarList as $pendaftar)
                     <!-- Card -->
                     <div class="flex items-center justify-between p-4 bg-gray-100 rounded-lg shadow">
                         <div class="flex items-center space-x-4">
                             <div class="w-20 h-20 overflow-hidden bg-gray-300 rounded-full">
-                                <img src="{{ $pendaftar->foto_url }}" alt="{{ $pendaftar->nama_peserta }}"
-                                    class="object-cover w-full h-full">
+                                <!-- Ambil foto dari relasi user -->
+                                <img src="{{ $pendaftar->user->image ? asset('storage/' . $pendaftar->user->image) : asset('images/default-profile.jpg') }}"
+                                    alt="{{ $pendaftar->nama_peserta }}" class="object-cover w-full h-full">
                             </div>
                             <div>
                                 <h3 class="text-lg font-bold">{{ $pendaftar->nama_peserta }}</h3>

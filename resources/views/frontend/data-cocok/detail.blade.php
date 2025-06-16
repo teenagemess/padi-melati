@@ -9,8 +9,8 @@
             <!-- Male Profile -->
             <div class="p-6 bg-white rounded-lg shadow-lg">
                 <div class="text-center">
-                    <img src="{{ $lakiLaki->foto_url ?? 'images/fotodummy.jpg' }}"
-                        class="w-32 h-32 mx-auto mb-4 border-4 border-white rounded-full">
+                    <img src="{{ $lakiLaki->user->image ? asset('storage/' . $lakiLaki->user->image) : asset('images/default-profile.jpg') }}"
+                        class="object-cover w-32 h-32 mx-auto mb-4 border-4 rounded-full">
                     <h2 class="text-xl font-bold">{{ $lakiLaki->nama }}</h2>
                     <p class="text-gray-600">{{ $lakiLaki->jenis_kelamin }}</p>
                 </div>
@@ -87,8 +87,8 @@
             <!-- Female Profile -->
             <div class="p-6 bg-white rounded-lg shadow-lg">
                 <div class="text-center">
-                    <img src="{{ $wanita->foto_url ?? 'images/fotodummy.jpg' }}"
-                        class="w-32 h-32 mx-auto mb-4 border-4 border-white rounded-full">
+                    <img src="{{ $wanita->user->image ? asset('storage/' . $wanita->user->image) : asset('images/default-profile.jpg') }}"
+                        class="object-cover w-32 h-32 mx-auto mb-4 border-4 rounded-full">
                     <h2 class="text-xl font-bold">{{ $wanita->nama }}</h2>
                     <p class="text-gray-600">{{ $wanita->jenis_kelamin }}</p>
                 </div>

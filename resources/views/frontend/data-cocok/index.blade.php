@@ -6,7 +6,7 @@
                 {{-- Card 1 --}}
                 <div class="flex items-center justify-between p-4 space-x-4 bg-gray-200 rounded-lg shadow-md">
                     <div class="flex items-center space-x-4">
-                        <img src="https://randomuser.me/api/portraits/men/1.jpg"
+                        <img src="{{ $laki->user->image ? asset('storage/' . $laki->user->image) : asset('images/default-profile.jpg') }}"
                             class="object-cover w-16 h-16 rounded-full" alt="Foto">
                         <div>
                             <p class="text-lg font-bold">{{ $laki->nama_peserta }}</p>

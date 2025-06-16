@@ -9,6 +9,7 @@ use App\Models\Orangtua;
 use App\Models\MatchResult;
 use Illuminate\Http\Request;
 use App\Models\PandanganNikah;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
 class PendaftaranController extends Controller
@@ -185,18 +186,22 @@ class PendaftaranController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit()
     {
-        //
-    }
+        $user = Auth::user();
 
+        // Ambil data lengkap dengan relasinya
+        $dataDiri = Datadiri::with(['orangtua', 'pandanganNikah', 'kriteria'])
+            ->where('user_id', $user->id)
+            ->firstOrFail(); // Gunakan firstOrFail() untuk memastikan data ada
+
+        return view('profile.edit', compact('user', 'dataDiri'));
+    }
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+    public function update(Request $request, string $id) {}
+
 
     /**
      * Remove the specified resource from storage.

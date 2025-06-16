@@ -248,7 +248,7 @@
                     <div class="flex flex-col items-center gap-4">
                         <div x-show="tab === 'data_diri'">
                             <div class="grid w-3/4 grid-cols-2 gap-6 mt-8 md:grid-cols-2">
-                                <input x-model="formData.nbm" name="nbm" type="text" placeholder="NBM"
+                                <input x-model="formData.nbm" name="nbm" type="number" placeholder="NBM"
                                     class="w-full p-3 border rounded-lg" required>
                                 <input x-model="formData.nama_peserta" name="nama_peserta" type="text"
                                     placeholder="Nama" class="w-full p-3 border rounded-lg" required>
@@ -268,9 +268,9 @@
                                 <input x-model="formData.status" name="status" type="text" placeholder="Status"
                                     class="w-full p-3 border rounded-lg" required>
 
-                                <input x-model="formData.tinggi_badan" name="tinggi_badan" type="text"
+                                <input x-model="formData.tinggi_badan" name="tinggi_badan" type="number"
                                     placeholder="Tinggi Badan" class="w-full p-3 border rounded-lg" required>
-                                <input x-model="formData.berat_badan" name="berat_badan" type="text"
+                                <input x-model="formData.berat_badan" name="berat_badan" type="number"
                                     placeholder="Berat Badan" class="w-full p-3 border rounded-lg" required>
 
                                 <input x-model="formData.alamat" name="alamat" type="text" placeholder="Alamat"

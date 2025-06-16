@@ -14,7 +14,7 @@
                     <div class="flex flex-col items-center justify-between md:flex-row">
                         {{-- Male Participant --}}
                         <div class="flex flex-col items-center mb-4 md:mb-0">
-                            <img src="{{ asset('storage/foto/' . ($lakiLaki->foto ?? 'default.jpg')) }}"
+                            <img src="{{ $lakiLaki->user->image ? asset('storage/' . $lakiLaki->user->image) : asset('images/default-profile.jpg') }}"
                                 class="object-cover w-24 h-24 mb-3 border-2 border-gray-300 rounded-full">
                             <div class="font-semibold">{{ $lakiLaki->nama_peserta }}</div>
                             <div class="text-gray-500">Laki-laki</div>
@@ -33,7 +33,7 @@
 
                         {{-- Female Participant --}}
                         <div class="flex flex-col items-center mb-4 md:mb-0">
-                            <img src="{{ asset('storage/foto/' . ($match['wanita']->foto ?? 'default.jpg')) }}"
+                            <img src="{{ $match['wanita']->user->image ? asset('storage/' . $match['wanita']->user->image) : asset('images/default-profile.jpg') }}"
                                 class="object-cover w-24 h-24 mb-3 border-2 border-gray-300 rounded-full">
                             <div class="font-semibold">{{ $match['wanita']->nama_peserta }}</div>
                             <div class="text-gray-500">Perempuan</div>

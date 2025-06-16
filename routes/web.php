@@ -18,10 +18,22 @@ Route::get('/', function () {
 Route::middleware('auth')->group(function () {
 
     Route::resource('pendaftaran', PendaftaranController::class);
+
+
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::patch('/profile/image', [ProfileController::class, 'updateImage'])->name('profile.image.update');
+    Route::patch('/profile/update-data-diri', [ProfileController::class, 'updateDataDiri'])
+        ->name('profile.update-data-diri');
     Route::get('/status', [PendaftaranController::class, 'showStatus']);
+
+    // Tambahkan ini di atas route resource jika perlu
+
+
+    // // Atau jika ingin menggunakan route resource, pastikan form mengirimkan ID
+    // Route::resource('pendaftaran', PendaftaranController::class);
 });
 
 Route::middleware('admin')->group(function () {
