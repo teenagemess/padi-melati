@@ -8,6 +8,9 @@
             @if (session('error'))
                 <div class="p-4 mb-6 text-red-700 bg-red-100 rounded-lg">{{ session('error') }}</div>
             @endif
+            @if (session('success'))
+                <div class="p-4 mb-6 text-green-700 bg-green-100 rounded-lg">{{ session('success') }}</div>
+            @endif
 
             @forelse($matches as $match)
                 <div class="p-6 mb-6 bg-white shadow-md rounded-2xl">
@@ -41,7 +44,21 @@
 
                         {{-- Buttons --}}
                         <div class="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
-                            @if (!isset($isMatched) || !$isMatched)
+                            {{-- Kondisi untuk menampilkan tombol Konfirmasi atau Batalkan --}}
+                            @if (isset($isMatched) && $isMatched)
+                                {{-- Tombol Batalkan Taaruf (hanya jika sudah dijodohkan) --}}
+                                <form action="{{ route('data-cocok.batalkan', $lakiLaki->user_id) }}" method="POST"
+                                    class="inline-block">
+                                    @csrf
+                                    @method('DELETE') {{-- Penting untuk route DELETE --}}
+                                    <button type="submit"
+                                        class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                        onclick="return confirm('Apakah Anda yakin ingin membatalkan taaruf ini? Ini tidak dapat diurungkan.');">
+                                        Batalkan Taaruf
+                                    </button>
+                                </form>
+                            @else
+                                {{-- Tombol Konfirmasi (jika belum dijodohkan dan ini adalah rekomendasi) --}}
                                 <form action="{{ route('data-cocok.konfirmasi') }}" method="POST" class="inline-block">
                                     @csrf
                                     <input type="hidden" name="laki_id" value="{{ $lakiLaki->user_id }}">
@@ -54,6 +71,7 @@
                                 </form>
                             @endif
 
+                            {{-- Tombol Detail selalu ada --}}
                             <a href="{{ route('data-cocok.detail', ['laki_id' => $lakiLaki->user_id, 'wanita_id' => $match['wanita']->user_id]) }}"
                                 class="px-4 py-2 text-sm font-medium text-center text-gray-800 bg-yellow-400 rounded-lg hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500">
                                 Detail

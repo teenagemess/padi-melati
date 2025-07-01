@@ -4,7 +4,7 @@
             <div class="flex">
                 <div class="flex items-center shrink-0">
                     <a href="{{ route('welcome') }}">
-                        <img src="images/navigationlogo.png" alt="logo" class="w-40">
+                        <img src="{{ asset('images/navigationlogo.png') }}" alt="logo" class="w-40">
                     </a>
                 </div>
 

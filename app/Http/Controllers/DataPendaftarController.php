@@ -3,64 +3,121 @@
 namespace App\Http\Controllers;
 
 use App\Models\Datadiri;
-use App\Models\User;
 use App\Models\MatchResult;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Gate; // Tetap dipertahankan jika Anda ingin menambahkan otorisasi admin di sini
 
 class DataPendaftarController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Menampilkan daftar pendaftar.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // // Periksa apakah user adalah admin menggunakan Gate
-        // if (Gate::exists('admin') && !Gate::allows('admin')) {
-        //     return redirect()->route('dashboard')
-        //         ->with('error', 'Anda tidak memiliki akses ke halaman ini');
-        // }
+        // Validasi input
+        $request->validate([
+            'search' => 'nullable|string|max:255',
+            'gender' => 'nullable|in:L,P' // Masih validasi 'L' dan 'P' dari form
+        ]);
 
-        // Ambil daftar user_id yang sudah dipasangkan (baik sebagai laki maupun wanita)
+        // Ambil ID pengguna yang sudah dijodohkan
         $matchedUserIds = MatchResult::where('status', 'confirmed')
-            ->select('laki_id', 'wanita_id')
-            ->get()
-            ->flatMap(function ($item) {
-                return [$item->laki_id, $item->wanita_id];
-            })
+            ->pluck('laki_id')
+            ->merge(MatchResult::where('status', 'confirmed')->pluck('wanita_id'))
+            ->unique()
             ->toArray();
 
-        // Ambil semua pendaftar yang belum dijodohkan
-        $pendaftarList = Datadiri::with('user')
-            ->whereNotIn('user_id', $matchedUserIds)
-            ->get();
+        // Buat query untuk pendaftar
+        $query = Datadiri::with('user')
+            ->whereNotIn('user_id', $matchedUserIds);
+
+        // Terapkan filter pencarian nama jika ada
+        if ($search = $request->query('search')) {
+            $query->where('nama_peserta', 'like', '%' . $search . '%');
+        }
+
+        // Terapkan filter gender jika ada
+        if ($gender = $request->query('gender')) {
+            // *** PERUBAHAN DI SINI: Mapping 'L'/'P' ke 'Laki-laki'/'Perempuan' ***
+            $fullGenderName = ($gender == 'L') ? 'Laki-laki' : 'Perempuan';
+            $query->where('jenis_kelamin', $fullGenderName);
+        }
+
+        // Urutkan berdasarkan created_at terbaru
+        $query->orderBy('created_at', 'desc');
+
+        // Paginate hasil (6 per halaman) dengan preservasi query string
+        $pendaftarList = $query->paginate(6)->withQueryString();
 
         return view('frontend.data-pendaftar.index', compact('pendaftarList'));
     }
 
     /**
-     * Display the specified resource.
+     * Menampilkan detail pendaftar.
      */
     public function show($id)
     {
-        // Periksa apakah data pendaftar sudah dijodohkan
-        $dataDiri = Datadiri::with(['user', 'orangtua', 'pandanganNikah', 'kriteria'])
-            ->where('id', $id)
-            ->firstOrFail();
+        try {
+            // Validasi ID
+            if (!is_numeric($id) || $id <= 0) {
+                return redirect()->route('data-pendaftar.index')
+                    ->with('error', 'ID pendaftar tidak valid.');
+            }
 
-        // Cek apakah user ini sudah dijodohkan
-        $isMatched = MatchResult::where(function ($query) use ($dataDiri) {
-            $query->where('laki_id', $dataDiri->user_id)
-                ->orWhere('wanita_id', $dataDiri->user_id);
-        })
-            ->where('status', 'confirmed')
-            ->exists();
+            $dataDiri = Datadiri::with(['user', 'orangtua', 'pandanganNikah', 'kriteria'])
+                ->where('id', $id)
+                ->firstOrFail();
 
-        if ($isMatched) {
-            return redirect()->route('frontend.data-pendaftar.index')
-                ->with('info', 'Data pendaftar ini sudah dijodohkan.');
+            if (!$dataDiri->user_id) {
+                return redirect()->route('data-pendaftar.index')
+                    ->with('error', 'Data pendaftar tidak valid.');
+            }
+
+            $isMatched = MatchResult::where(function ($query) use ($dataDiri) {
+                $query->where('laki_id', $dataDiri->user_id)
+                    ->orWhere('wanita_id', $dataDiri->user_id);
+            })
+                ->where('status', 'confirmed')
+                ->exists();
+
+            if ($isMatched) {
+                return redirect()->route('data-pendaftar.index')
+                    ->with('info', 'Data pendaftar ini sudah dijodohkan.');
+            }
+
+            return view('frontend.data-pendaftar.show', compact('dataDiri'));
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return redirect()->route('data-pendaftar.index')
+                ->with('error', 'Data pendaftar tidak ditemukan.');
         }
+    }
 
-        return view('frontend.data-pendaftar.show', compact('dataDiri'));
+    /**
+     * Method untuk debugging - bisa dihapus setelah testing
+     */
+    public function debug(Request $request)
+    {
+        // Untuk debugging, tampilkan data apa saja yang ada
+        $allData = Datadiri::select('id', 'nama_peserta', 'jenis_kelamin', 'user_id')->get();
+
+        $matchedUserIds = MatchResult::where('status', 'confirmed')
+            ->pluck('laki_id')
+            ->merge(MatchResult::where('status', 'confirmed')->pluck('wanita_id'))
+            ->unique()
+            ->toArray();
+
+        $availableData = Datadiri::whereNotIn('user_id', $matchedUserIds)
+            ->select('id', 'nama_peserta', 'jenis_kelamin', 'user_id')
+            ->get();
+
+        return response()->json([
+            'all_data' => $allData,
+            'matched_user_ids' => $matchedUserIds,
+            'available_data' => $availableData,
+            'gender_counts' => [
+                'L' => $availableData->where('jenis_kelamin', 'Laki-laki')->count(), // *** PERUBAHAN DI SINI ***
+                'P' => $availableData->where('jenis_kelamin', 'Perempuan')->count() // *** PERUBAHAN DI SINI ***
+            ]
+        ]);
     }
 }

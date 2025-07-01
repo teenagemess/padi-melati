@@ -4,7 +4,7 @@
 
     <div class="max-w-3xl mx-auto mt-[-200px]" x-data="{ tab: 'data-diri' }">
         <div class="relative p-6 text-center bg-white rounded-lg shadow-lg">
-            <img src="{{ $dataDiri->foto_url ?? 'images/fotodummy.jpg' }}"
+            <img src="{{ $dataDiri->user->image ? asset('storage/' . $dataDiri->user->image) : asset('images/default-profile.jpg') }}"
                 class="mx-auto -mt-16 border-4 border-white rounded-full w-52 h-52" alt="Profile">
             <h2 class="mt-4 text-2xl font-bold">{{ $dataDiri->nama_peserta ?? 'Nama Peserta' }}</h2>
             <p class="text-gray-500">{{ $dataDiri->jenis_kelamin ?? 'Jenis Kelamin' }}</p>
@@ -21,95 +21,72 @@
             </div>
         </div>
 
-        <!-- Data Diri Tab -->
-        <!-- Data Diri Tab -->
         <div x-show="tab === 'data-diri'" class="p-6 mt-6 bg-white rounded-lg shadow-lg">
             <div class="space-y-6">
                 <h3 class="mb-4 text-xl font-bold">Data Diri</h3>
 
                 <div class="space-y-4">
-                    <!-- NIK -->
                     <div class="flex items-start">
                         <span class="w-1/3 font-semibold">NBM</span>
                         <span class="w-2/3">: {{ $dataDiri->nbm ?? '-' }}</span>
                     </div>
 
-                    <!-- Jenis Kelamin -->
                     <div class="flex items-start">
                         <span class="w-1/3 font-semibold">Jenis Kelamin</span>
                         <span class="w-2/3">: {{ $dataDiri->jenis_kelamin ?? '-' }}</span>
                     </div>
 
-
-                    <!-- Tempat Lahir dan Tanggal Lahir -->
                     <div class="flex items-start">
                         <span class="w-1/3 font-semibold">Tempat Lahir, tanggal lahir</span>
                         <span class="w-2/3">: {{ $dataDiri->tempat_lahir ?? '-' }},
                             {{ $dataDiri->tanggal_lahir ? \Carbon\Carbon::parse($dataDiri->tanggal_lahir)->format('d F Y') : '-' }}</span>
                     </div>
 
-                    {{-- <!-- Tanggal Lahir -->
-                    <div class="flex items-start">
-                        <span class="w-1/3 font-semibold">Tanggal Lahir</span>
-                        <span class="w-2/3">:
-                            {{ $dataDiri->tanggal_lahir ? \Carbon\Carbon::parse($dataDiri->tanggal_lahir)->format('d F Y') : '-' }}</span>
-                    </div> --}}
-
-                    <!-- Alamat -->
                     <div class="flex items-start">
                         <span class="w-1/3 font-semibold">Alamat</span>
                         <span class="w-2/3">: {{ $dataDiri->alamat ?? '-' }}</span>
                     </div>
 
-                    <!-- No. Telepon -->
                     <div class="flex items-start">
                         <span class="w-1/3 font-semibold">No. Telepon</span>
                         <span class="w-2/3">: {{ $dataDiri->no_telepon ?? '-' }}</span>
                     </div>
 
-                    <!-- Berat Badan -->
                     <div class="flex items-start">
                         <span class="w-1/3 font-semibold">Berat Badan</span>
                         <span class="w-2/3">: {{ $dataDiri->berat_badan ?? '-' }}</span>
                     </div>
 
-                    <!-- Tinggi Badan -->
                     <div class="flex items-start">
                         <span class="w-1/3 font-semibold">Tinggi Badan</span>
                         <span class="w-2/3">: {{ $dataDiri->tinggi_badan ?? '-' }}</span>
                     </div>
 
-                    <!-- Riwayat Penyakit -->
                     <div class="flex items-start">
                         <span class="w-1/3 font-semibold">Riwayat Penyakit</span>
                         <span class="w-2/3">: {{ $dataDiri->riwayat_penyakit ?? '-' }}</span>
                     </div>
 
-                    <!-- Riwayat Organisasi -->
                     <div class="flex items-start">
                         <span class="w-1/3 font-semibold">Riwayat Organisasi</span>
-                        <span class="w-2/3">: {{ $dataDiri->riwayat_organisasii ?? '-' }}</span>
+                        <span class="w-2/3">: {{ $dataDiri->riwayat_organisasi ?? '-' }}</span>
                     </div>
 
-                    <!-- Pendidikan -->
                     <div class="flex items-start">
                         <span class="w-1/3 font-semibold">Pendidikan</span>
                         <span class="w-2/3">: {{ $dataDiri->pendidikan ?? '-' }}</span>
                     </div>
 
-                    <!-- Pekerjaan -->
                     <div class="flex items-start">
                         <span class="w-1/3 font-semibold">Pekerjaan</span>
                         <span class="w-2/3">: {{ $dataDiri->pekerjaan ?? '-' }}</span>
                     </div>
 
-                    <!-- Status -->
                     <div class="flex items-start">
-                        <span class="w-1/3 font-semibold">Status</span>
-                        <span class="w-2/3">: {{ $dataDiri->status ?? '-' }}</span>
+                        <span class="w-1/3 font-semibold">Status Pernikahan</span>
+                        <span class="w-2/3">: {{ $dataDiri->status_pernikahan ?? '-' }}</span>
                     </div>
 
-                    <!-- Status -->
                     <div class="flex items-start">
                         <span class="w-1/3 font-semibold">Penghasilan</span>
                         <span class="w-2/3">: {{ $dataDiri->penghasilan ?? '-' }}</span>
@@ -118,7 +95,6 @@
             </div>
         </div>
 
-        <!-- Data Orang Tua Tab -->
         <div x-show="tab === 'data-orang-tua'" class="p-6 mt-6 bg-white rounded-lg shadow-lg">
             <div class="space-y-4">
                 <h3 class="text-xl font-bold">Data Orang Tua</h3>
@@ -147,7 +123,6 @@
             </div>
         </div>
 
-        <!-- Kriteria Calon Tab -->
         <div x-show="tab === 'kriteria-calon'" class="p-6 mt-6 bg-white rounded-lg shadow-lg">
             <div class="space-y-4">
                 <h3 class="text-xl font-bold">Kriteria Calon</h3>
@@ -155,11 +130,33 @@
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div>
                             <p class="font-semibold">Kriteria Diri</p>
-                            <p>{{ $dataDiri->kriteria->kriteria_diri ?? '-' }}</p>
+                            @php
+                                $kriteriaDiri = $dataDiri->kriteria->kriteria_diri_array;
+                            @endphp
+                            @if (!empty($kriteriaDiri))
+                                <ul class="text-gray-700 list-disc list-inside">
+                                    @foreach ($kriteriaDiri as $kriteriaItem)
+                                        <li>{{ $kriteriaItem }}</li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <p class="text-gray-500">- Tidak ada kriteria diri atau data tidak valid -</p>
+                            @endif
                         </div>
                         <div>
                             <p class="font-semibold">Kriteria Pasangan</p>
-                            <p>{{ $dataDiri->kriteria->kriteria_pasangan ?? '-' }}</p>
+                            @php
+                                $kriteriaPasangan = $dataDiri->kriteria->kriteria_pasangan_array;
+                            @endphp
+                            @if (!empty($kriteriaPasangan))
+                                <ul class="text-gray-700 list-disc list-inside">
+                                    @foreach ($kriteriaPasangan as $kriteriaItem)
+                                        <li>{{ $kriteriaItem }}</li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <p class="text-gray-500">- Tidak ada kriteria pasangan atau data tidak valid -</p>
+                            @endif
                         </div>
                     </div>
                 @else
@@ -168,7 +165,6 @@
             </div>
         </div>
 
-        <!-- Pandangan Pernikahan -->
         <div x-show="tab === 'pandangan-nikah'" class="p-6 mt-6 bg-white rounded-lg shadow-lg">
             <div class="space-y-4">
                 <h3 class="text-xl font-bold">Pandangan Pernikahan</h3>
@@ -179,7 +175,7 @@
                             <p>{{ $dataDiri->pandanganNikah->visi_pernikahan ?? '-' }}</p>
                         </div>
                         <div>
-                            <p class="font-semibold">Kriteria Pasangan</p>
+                            <p class="font-semibold">Misi Pernikahan</p>
                             <p>{{ $dataDiri->pandanganNikah->misi_pernikahan ?? '-' }}</p>
                         </div>
                         <div>

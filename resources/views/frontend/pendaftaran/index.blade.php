@@ -145,7 +145,7 @@
                                     <span class="text-sm font-medium text-gray-700">Pendaftaran</span>
                                 </div>
 
-                                <!-- Step 2 - Verifikasi -->
+                                {{-- <!-- Step 2 - Verifikasi -->
                                 <div class="relative z-10 flex flex-col items-center">
                                     <div
                                         class="flex items-center justify-center w-8 h-8 mb-2 text-white rounded-full bg-emerald-500">
@@ -157,7 +157,7 @@
                                         </svg>
                                     </div>
                                     <span class="text-sm font-medium text-gray-700">Verifikasi</span>
-                                </div>
+                                </div> --}}
 
                                 <!-- Step 3 - Penjodohan -->
                                 <div class="relative z-10 flex flex-col items-center">
@@ -255,8 +255,11 @@
 
                                 <input x-model="formData.tempat_lahir" name="tempat_lahir" type="text"
                                     placeholder="Tempat Lahir" class="w-full p-3 border rounded-lg" required>
-                                <input x-model="formData.tanggal_lahir" name="tanggal_lahir" type="date"
-                                    placeholder="Tanggal Lahir" class="w-full p-3 border rounded-lg" required>
+                                <div class="relative">
+                                    <input x-model="formData.tanggal_lahir" name="tanggal_lahir" type="date"
+                                        placeholder="Tanggal Lahir" class="w-full p-3 border rounded-lg" required>
+                                </div>
+
 
                                 <select x-model="formData.jenis_kelamin" name="jenis_kelamin"
                                     class="w-full p-3 border rounded-lg" required>
@@ -326,7 +329,8 @@
 
                                 <!-- Upload KTP/SIM -->
                                 <div class="col-span-2">
-                                    <input type="file" name="ktp"
+                                    <p class="mb-2 font-medium">KTP/SIM</p>
+                                    <input type="file" name="ktp" placeholder="KTP/SIM"
                                         @change="formData.ktp = $event.target.files[0]"
                                         class="w-full p-2 border rounded-md">
                                 </div>

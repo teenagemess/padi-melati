@@ -15,7 +15,7 @@
         <!-- Email Address -->
         <div>
             {{-- <x-input-label for="email" :value="__('Email')" /> --}}
-            <x-text-input placeholder="Alamat Email" id="email" class="block w-full mt-1" type="email" name="email"
+            <x-text-input placeholder="Nama Pengguna" id="email" class="block w-full mt-1" type="email" name="email"
                 :value="old('email')" required autofocus autocomplete="username" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>

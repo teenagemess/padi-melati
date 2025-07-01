@@ -27,18 +27,19 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
+    // ...
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'username' => ['required', 'string', 'max:255', 'unique'.User::class],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'username' => ['required', 'string', 'max:255', 'unique:users'], // Corrected line
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'], // Corrected line
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'image' => ['nullable, image, mimes:jpg,jpeg,gif,png'.User::class]
+            // 'image' => ['nullable, image, mimes:jpg,jpeg,gif,png'] // If you enable image upload, fix this too
         ]);
-
+        // ...
         $imagePath = null;
-        if($request->hasFile('image')){
+        if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('uploads', 'public');
         }
 
@@ -47,10 +48,10 @@ class RegisteredUserController extends Controller
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'image' =>$imagePath
+            'image' => $imagePath
         ]);
 
-        
+
         event(new Registered($user));
 
         Auth::login($user);

@@ -17,7 +17,7 @@ class PenjodohanController extends Controller
     /**
      * Tampilkan halaman admin untuk penjodohan
      */
-    public function index()
+    public function index(Request $request)
     {
         // Periksa apakah user adalah admin menggunakan Gate
         if (!Gate::allows('admin')) {
@@ -25,16 +25,54 @@ class PenjodohanController extends Controller
                 ->with('error', 'Anda tidak memiliki akses ke halaman ini');
         }
 
-        // Ambil semua pengguna laki-laki yang sudah mengisi data
-        // Kecuali admin (is_admin = true)
-        $lakiLaki = Datadiri::where('jenis_kelamin', 'Laki-laki')
+        // Validasi input untuk pencarian
+        $request->validate([
+            'search' => 'nullable|string|max:255',
+        ]);
+
+        // Query dasar untuk semua pengguna laki-laki non-admin
+        $baseQuery = Datadiri::where('jenis_kelamin', 'Laki-laki')
             ->whereHas('user', function ($query) {
                 $query->where('is_admin', false);
-            })
-            ->get();
+            });
+
+        // Ambil ID dari semua laki-laki yang memenuhi kriteria dasar
+        $allMaleUserIds = (clone $baseQuery)->pluck('user_id')->toArray();
+
+        // Ambil ID laki-laki yang sudah dikonfirmasi jodohnya
+        $matchedMaleUserIds = MatchResult::whereIn('laki_id', $allMaleUserIds)
+            ->where('status', 'confirmed')
+            ->pluck('laki_id')
+            ->unique()
+            ->toArray();
+
+        // Hitung jumlah laki-laki yang sudah berjodoh dan belum berjodoh
+        $matchedMaleCount = count($matchedMaleUserIds);
+        $unmatchedMaleCount = count(array_diff($allMaleUserIds, $matchedMaleUserIds));
+
+
+        // Terapkan filter pencarian nama jika ada pada query yang akan di-paginate
+        $query = $baseQuery; // Gunakan baseQuery untuk paginasi
+        if ($search = $request->query('search')) {
+            $query->where('nama_peserta', 'like', '%' . $search . '%');
+        }
+
+        // Urutkan berdasarkan created_at terbaru (default)
+        $query->orderBy('created_at', 'desc');
+
+        // Paginate hasilnya (misalnya 6 item per halaman)
+        $lakiLaki = $query->paginate(6)->withQueryString();
+
+        // Tambahkan atribut 'is_matched' ke setiap Datadiri dalam koleksi paginated
+        // untuk memudahkan pengecekan di Blade
+        $lakiLaki->each(function ($laki) use ($matchedMaleUserIds) {
+            $laki->is_matched = in_array($laki->user_id, $matchedMaleUserIds);
+        });
 
         return view('frontend.data-cocok.index', [
-            'lakiLaki' => $lakiLaki
+            'lakiLaki' => $lakiLaki, // Objek Paginator
+            'matchedMaleCount' => $matchedMaleCount,
+            'unmatchedMaleCount' => $unmatchedMaleCount,
         ]);
     }
 
@@ -79,7 +117,7 @@ class PenjodohanController extends Controller
                 return view('frontend.data-cocok.rekomendasi', [
                     'lakiLaki' => $lakiLaki,
                     'matches' => $matches,
-                    'isMatched' => true
+                    'isMatched' => true // Set true karena sudah ada konfirmasi
                 ]);
             }
         }
@@ -155,7 +193,7 @@ class PenjodohanController extends Controller
         return view('frontend.data-cocok.rekomendasi', [
             'lakiLaki' => $lakiLaki,
             'matches' => $topMatches,
-            'isMatched' => false
+            'isMatched' => false // Set false karena belum ada konfirmasi
         ]);
     }
 
@@ -174,6 +212,7 @@ class PenjodohanController extends Controller
         $request->validate([
             'laki_id' => 'required|exists:datadiris,user_id',
             'wanita_id' => 'required|exists:datadiris,user_id',
+            'persentase' => 'required|numeric|min:0|max:100',
         ]);
 
         // Simpan hasil konfirmasi ke database
@@ -190,6 +229,33 @@ class PenjodohanController extends Controller
         return redirect()->route('data-cocok.index')
             ->with('success', 'Pasangan berhasil dikonfirmasi');
     }
+
+    /**
+     * Metode baru: Batalkan Taaruf
+     */
+    public function batalkanTaaruf(Request $request, $lakiId)
+    {
+        // Periksa apakah user adalah admin menggunakan Gate
+        if (!Gate::allows('admin')) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Anda tidak memiliki akses ke halaman ini');
+        }
+
+        // Cari hasil jodoh yang dikonfirmasi untuk laki-laki ini
+        $matchResult = MatchResult::where('laki_id', $lakiId)
+            ->where('status', 'confirmed')
+            ->first();
+
+        if ($matchResult) {
+            $matchResult->delete(); // Hapus data jodoh
+            return redirect()->route('data-cocok.index')
+                ->with('success', 'Taaruf berhasil dibatalkan.');
+        }
+
+        return redirect()->route('data-cocok.index')
+            ->with('error', 'Data taaruf tidak ditemukan atau belum dikonfirmasi.');
+    }
+
 
     /**
      * Tampilkan detail perbandingan antara laki-laki dan wanita
