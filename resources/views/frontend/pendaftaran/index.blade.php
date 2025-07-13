@@ -18,7 +18,7 @@
             penghasilan: '',
             riwayat_penyakit: [],
             riwayat_penyakit_lain: '',
-            ktp: null,
+            ktp: '',
             riwayat_organisasi: '',
             nama_ayah: '',
             pekerjaan_ayah: '',
@@ -243,7 +243,7 @@
             <!-- Registration form only shown if user hasn't registered -->
             <template x-if="!hasRegistered">
                 <!-- Kontainer Utama -->
-                <form action="{{ route('pendaftaran.store') }}" method="POST" enctype="multipart/form-data">
+                <form method="POST" action="{{ route('pendaftaran.store') }}" enctype="multipart/form-data">
                     @csrf
                     <div class="flex flex-col items-center gap-4">
                         <div x-show="tab === 'data_diri'">
@@ -259,7 +259,6 @@
                                     <input x-model="formData.tanggal_lahir" name="tanggal_lahir" type="date"
                                         placeholder="Tanggal Lahir" class="w-full p-3 border rounded-lg" required>
                                 </div>
-
 
                                 <select x-model="formData.jenis_kelamin" name="jenis_kelamin"
                                     class="w-full p-3 border rounded-lg" required>
@@ -327,12 +326,121 @@
                                     </div>
                                 </div>
 
-                                <!-- Upload KTP/SIM -->
-                                <div class="col-span-2">
-                                    <p class="mb-2 font-medium">KTP/SIM</p>
-                                    <input type="file" name="ktp" placeholder="KTP/SIM"
-                                        @change="formData.ktp = $event.target.files[0]"
-                                        class="w-full p-2 border rounded-md">
+                                <div class="col-span-2 mt-4">
+                                    <label for="ktp" class="block mb-2 font-medium text-gray-700">
+                                        Upload KTP
+                                        <span class="text-red-500">*</span>
+                                        @error('ktp')
+                                            <span class="text-sm text-red-500"> - {{ $message }}</span>
+                                        @enderror
+                                    </label>
+
+                                    <div x-data="{
+                                        ktpPreview: null,
+                                        isUploading: false,
+                                        errorMessage: '',
+                                        handleFileChange(event) {
+                                            this.isUploading = true;
+                                            this.errorMessage = '';
+                                            const file = event.target.files[0];
+                                    
+                                            // Reset jika tidak ada file
+                                            if (!file) {
+                                                this.errorMessage = 'Silakan pilih file KTP';
+                                                this.isUploading = false;
+                                                return;
+                                            }
+                                    
+                                            // Validasi ukuran file (max 2MB)
+                                            if (file.size > 2 * 1024 * 1024) {
+                                                this.errorMessage = 'Ukuran file terlalu besar (maksimal 2MB)';
+                                                event.target.value = '';
+                                                this.isUploading = false;
+                                                return;
+                                            }
+                                    
+                                            // Validasi tipe file
+                                            const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+                                            if (!allowedTypes.includes(file.type)) {
+                                                this.errorMessage = 'Hanya file JPG/PNG/PDF yang diperbolehkan';
+                                                event.target.value = '';
+                                                this.isUploading = false;
+                                                return;
+                                            }
+                                    
+                                            // Preview untuk gambar
+                                            if (file.type.includes('image')) {
+                                                const reader = new FileReader();
+                                                reader.onload = (e) => {
+                                                    this.ktpPreview = e.target.result;
+                                                    this.isUploading = false;
+                                                };
+                                                reader.readAsDataURL(file);
+                                            } else {
+                                                // Untuk PDF tidak ada preview
+                                                this.ktpPreview = null;
+                                                this.isUploading = false;
+                                            }
+                                        }
+                                    }" class="space-y-2">
+                                        <!-- Preview Gambar -->
+                                        <template x-if="ktpPreview">
+                                            <div class="relative w-full max-w-md">
+                                                <img :src="ktpPreview" alt="Preview KTP"
+                                                    class="object-contain w-full h-48 border rounded-md">
+                                                <button type="button"
+                                                    @click="ktpPreview = null; document.getElementById('ktp').value = ''; errorMessage = ''"
+                                                    class="absolute top-0 right-0 p-1 -mt-2 -mr-2 text-white transition-colors bg-red-500 rounded-full hover:bg-red-600">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4"
+                                                        viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd"
+                                                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </template>
+
+                                        <!-- Error Message dari JavaScript -->
+                                        <div x-show="errorMessage" x-cloak class="text-sm text-red-500"
+                                            x-text="errorMessage"></div>
+
+                                        <!-- Upload Area -->
+                                        <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+                                            <div class="relative">
+                                                <input type="file" name="ktp" id="ktp" required
+                                                    accept="image/jpeg,image/png,.pdf" class="hidden"
+                                                    @change="handleFileChange">
+
+                                                <label for="ktp"
+                                                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 transition-colors bg-gray-100 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50"
+                                                    :class="{ 'opacity-50 cursor-not-allowed': isUploading }">
+                                                    <span x-show="!isUploading">Pilih File</span>
+                                                    <span x-show="isUploading" class="flex items-center gap-2">
+                                                        <svg class="w-4 h-4 text-gray-500 animate-spin"
+                                                            xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                            viewBox="0 0 24 24">
+                                                            <circle class="opacity-25" cx="12" cy="12"
+                                                                r="10" stroke="currentColor" stroke-width="4">
+                                                            </circle>
+                                                            <path class="opacity-75" fill="currentColor"
+                                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                            </path>
+                                                        </svg>
+                                                        Memproses...
+                                                    </span>
+                                                </label>
+                                            </div>
+
+                                            <div class="flex-1 min-w-0">
+                                                <span
+                                                    x-text="document.getElementById('ktp')?.files[0]?.name || 'Belum ada file dipilih'"
+                                                    class="block text-sm text-gray-500 truncate"></span>
+                                            </div>
+                                        </div>
+
+                                        <p class="text-xs text-gray-500">Format: JPG/PNG/PDF (Maksimal 2MB)</p>
+                                    </div>
                                 </div>
 
                                 <!-- Riwayat organisasi -->

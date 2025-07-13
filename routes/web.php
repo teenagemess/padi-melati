@@ -23,6 +23,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile/update-data-diri', [ProfileController::class, 'updateDataDiri'])
         ->name('profile.update-data-diri');
     Route::get('/status', [PendaftaranController::class, 'showStatus']);
+    Route::post('/pendaftaran/upload-ktp', [PendaftaranController::class, 'storeKtp'])
+        ->name('pendaftaran.upload-ktp');
 });
 
 Route::middleware('admin')->group(function () {

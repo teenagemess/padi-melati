@@ -7,10 +7,13 @@ use App\Models\Datadiri;
 use App\Models\Kriteria;
 use App\Models\Orangtua;
 use App\Models\MatchResult;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\PandanganNikah;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class PendaftaranController extends Controller
 {
@@ -82,102 +85,159 @@ class PendaftaranController extends Controller
 
         // Validasi data
         $request->validate([
-            // 'nbm' => 'required',
-            // 'nama_peserta' => 'required',
-            // 'tempat_lahir' => 'required',
+            // 'nama_peserta' => 'required|string|max:255',
+            // 'nbm' => 'required|string|max:255',
+            // 'tempat_lahir' => 'required|string|max:255',
             // 'tanggal_lahir' => 'required|date',
-            // 'jenis_kelamin' => 'required',
-            // 'status' => 'required', // matches the form field name
-            // 'tinggi_badan' => 'required|numeric',
-            // 'berat_badan' => 'required|numeric',
-            // 'alamat' => 'required',
-            // 'no_telepon' => 'required',
-            // 'pendidikan' => 'required',
-            // 'pekerjaan' => 'required',
-            // 'penghasilan' => 'required',
+            // 'jenis_kelamin' => 'required|in:L,P',
+            // 'status' => 'required|string|max:255',
+            // 'tinggi_badan' => 'required|numeric|min:100|max:250',
+            // 'berat_badan' => 'required|numeric|min:30|max:200',
+            // 'alamat' => 'required|string|max:500',
+            // 'no_telepon' => 'required|string|max:20',
+            // 'pendidikan' => 'required|string|max:255',
+            // 'pekerjaan' => 'required|string|max:255',
+            // 'penghasilan' => 'required|string|max:255',
             // 'riwayat_penyakit' => 'nullable|array',
-            // 'riwayat_organisasi' => 'nullable',
-            // // 'ktp' => 'nullable|file|mimes:jpeg,png,pdf', // Uncomment if handling file upload
-            // 'nama_ayah' => 'required',
-            // 'pekerjaan_ayah' => 'required',
-            // 'nama_ibu' => 'required',
-            // 'pekerjaan_ibu' => 'required',
-            // 'visi_pernikahan' => 'nullable',
-            // 'misi_pernikahan' => 'nullable',
-            // 'cita_pernikahan' => 'nullable',
+            // 'riwayat_organisasi' => 'nullable|string|max:500',
+            'ktp' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048', // max 2MB
+            // 'nama_ayah' => 'required|string|max:255',
+            // 'pekerjaan_ayah' => 'required|string|max:255',
+            // 'nama_ibu' => 'required|string|max:255',
+            // 'pekerjaan_ibu' => 'required|string|max:255',
+            // 'visi_pernikahan' => 'nullable|string|max:1000',
+            // 'misi_pernikahan' => 'nullable|string|max:1000',
+            // 'cita_pernikahan' => 'nullable|string|max:1000',
             // 'karakteristik_diri' => 'nullable|array',
             // 'karakteristik_pasangan' => 'nullable|array',
         ]);
 
-        // Handle riwayat_penyakit data
-        $riwayat_penyakit = $request->input('riwayat_penyakit', []);
-        if ($request->filled('riwayat_penyakit_lain')) {
-            $riwayat_penyakit[] = $request->input('riwayat_penyakit_lain');
+        try {
+            // Begin transaction
+            DB::beginTransaction();
+
+            // Handle file upload for KTP
+            $ktpPath = null;
+            if ($request->hasFile('ktp') && $request->file('ktp')->isValid()) {
+                try {
+                    // Store file in storage/app/public/ktp_files
+                    $ktpPath = $request->file('ktp')->store('ktp_files', 'public');
+
+                    // Log successful upload
+                    Log::info('KTP file uploaded successfully', [
+                        'user_id' => Auth::id(),
+                        'file_path' => $ktpPath,
+                        'original_name' => $request->file('ktp')->getClientOriginalName()
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('KTP file upload failed', [
+                        'user_id' => Auth::id(),
+                        'error' => $e->getMessage()
+                    ]);
+
+                    DB::rollBack();
+                    return redirect()->back()
+                        ->with('error', 'Error uploading KTP file: ' . $e->getMessage())
+                        ->withInput();
+                }
+            }
+
+            // Handle riwayat_penyakit data
+            $riwayat_penyakit = $request->input('riwayat_penyakit', []);
+            if ($request->filled('riwayat_penyakit_lain')) {
+                $riwayat_penyakit[] = $request->input('riwayat_penyakit_lain');
+            }
+
+            // Simpan Data Diri
+            $datadiri = Datadiri::create([
+                'user_id' => Auth::id(),
+                'nama_peserta' => $request->input('nama_peserta'),
+                'nbm' => $request->input('nbm'),
+                'jenis_kelamin' => $request->input('jenis_kelamin'),
+                'tanggal_lahir' => $request->input('tanggal_lahir'),
+                'tempat_lahir' => $request->input('tempat_lahir'),
+                'tinggi_badan' => $request->input('tinggi_badan'),
+                'berat_badan' => $request->input('berat_badan'),
+                'alamat' => $request->input('alamat'),
+                'no_telepon' => $request->input('no_telepon'),
+                'pendidikan' => $request->input('pendidikan'),
+                'pekerjaan' => $request->input('pekerjaan'),
+                'penghasilan' => $request->input('penghasilan'),
+                'riwayat_penyakit' => json_encode($riwayat_penyakit),
+                'riwayat_organisasi' => $request->input('riwayat_organisasi'),
+                'ktp_file' => $ktpPath, // FIXED: Changed from 'ktp' to 'ktp_file'
+                'status_pernikahan' => $request->input('status'),
+            ]);
+
+            // Simpan data Orangtua
+            Orangtua::create([
+                'user_id' => Auth::id(),
+                'nama_ayah' => $request->input('nama_ayah'),
+                'pekerjaan_ayah' => $request->input('pekerjaan_ayah'),
+                'nama_ibu' => $request->input('nama_ibu'),
+                'pekerjaan_ibu' => $request->input('pekerjaan_ibu'),
+            ]);
+
+
+            // Simpan Pandangan Nikah
+            PandanganNikah::create([
+                'user_id' => Auth::id(),
+                'visi_pernikahan' => $request->input('visi_pernikahan'),
+                'misi_pernikahan' => $request->input('misi_pernikahan'),
+                'cita_pernikahan' => $request->input('cita_pernikahan'),
+            ]);
+            // Process karakteristik data
+            $karakteristik_diri = $request->input('karakteristik_diri', []);
+            if ($request->filled('karakteristik_diri_lain')) {
+                $karakteristik_diri[] = $request->input('karakteristik_diri_lain');
+            }
+
+            $karakteristik_pasangan = $request->input('karakteristik_pasangan', []);
+            if ($request->filled('karakteristik_pasangan_lain')) {
+                $karakteristik_pasangan[] = $request->input('karakteristik_pasangan_lain');
+            }
+
+            // Simpan Kriteria
+            Kriteria::create([
+                'user_id' => Auth::id(),
+                'kriteria_diri' => json_encode($karakteristik_diri),
+                'kriteria_pasangan' => json_encode($karakteristik_pasangan),
+            ]);
+
+            // Commit transaction
+            DB::commit();
+
+            // Log successful registration
+            Log::info('User registration completed successfully', [
+                'user_id' => Auth::id(),
+                'datadiri_id' => $datadiri->id,
+                'ktp_uploaded' => !is_null($ktpPath)
+            ]);
+
+            return redirect()->route('pendaftaran.index')
+                ->with('success', 'Pendaftaran berhasil disimpan');
+        } catch (\Exception $e) {
+            // Rollback transaction
+            DB::rollBack();
+
+            // Log error
+            Log::error('Registration failed', [
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Delete uploaded file if exists
+            if ($ktpPath && Storage::disk('public')->exists($ktpPath)) {
+                Storage::disk('public')->delete($ktpPath);
+            }
+
+            return redirect()->back()
+                ->with('error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage())
+                ->withInput();
         }
-
-        // Simpan Data Diri
-        Datadiri::create([
-            'user_id' => Auth::id(),
-            'nama_peserta' => $request->input('nama_peserta'),
-            'nbm' => $request->input('nbm'),
-            'jenis_kelamin' => $request->input('jenis_kelamin'),
-            'tanggal_lahir' => $request->input('tanggal_lahir'),
-            'tempat_lahir' => $request->input('tempat_lahir'),
-            'tinggi_badan' => $request->input('tinggi_badan'),
-            'berat_badan' => $request->input('berat_badan'),
-            'alamat' => $request->input('alamat'),
-            'no_telepon' => $request->input('no_telepon'),
-            'pendidikan' => $request->input('pendidikan'),
-            'pekerjaan' => $request->input('pekerjaan'),
-            'penghasilan' => $request->input('penghasilan'),
-            'riwayat_penyakit' => json_encode($riwayat_penyakit),
-            'riwayat_organisasi' => $request->input('riwayat_organisasi'),
-            'status_pernikahan' => $request->input('status'), // matches the form field
-        ]);
-
-        // Simpan data Orangtua
-        Orangtua::create([
-            'user_id' => Auth::id(),
-            'nama_ayah' => $request->input('nama_ayah'),
-            'pekerjaan_ayah' => $request->input('pekerjaan_ayah'),
-            'nama_ibu' => $request->input('nama_ibu'),
-            'pekerjaan_ibu' => $request->input('pekerjaan_ibu'),
-        ]);
-
-        // Simpan Pandangan Nikah
-        PandanganNikah::create([
-            'user_id' => Auth::id(),
-            'visi_pernikahan' => $request->input('visi_pernikahan'),
-            'misi_pernikahan' => $request->input('misi_pernikahan'),
-            'cita_pernikahan' => $request->input('cita_pernikahan'),
-        ]);
-
-        // Process karakteristik data
-        $karakteristik_diri = $request->input('karakteristik_diri', []);
-        if ($request->filled('karakteristik_diri_lain')) {
-            $karakteristik_diri[] = $request->input('karakteristik_diri_lain');
-        }
-
-        $karakteristik_pasangan = $request->input('karakteristik_pasangan', []);
-        if ($request->filled('karakteristik_pasangan_lain')) {
-            $karakteristik_pasangan[] = $request->input('karakteristik_pasangan_lain');
-        }
-
-        // Simpan Kriteria
-        Kriteria::create([
-            'user_id' => Auth::id(),
-            'kriteria_diri' => json_encode($karakteristik_diri),
-            'kriteria_pasangan' => json_encode($karakteristik_pasangan),
-        ]);
-
-        return redirect()->route('pendaftaran.index')
-            ->with('success', 'Pendaftaran berhasil disimpan');
     }
 
-
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         //

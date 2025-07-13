@@ -29,7 +29,7 @@ class Datadiri extends Model
         'riwayat_organisasi',
         'status_pernikahan',
         'foto',
-        'ktp',
+        'ktp_file',
     ];
 
     /**
@@ -56,6 +56,14 @@ class Datadiri extends Model
         return $this->hasOne(PandanganNikah::class, 'user_id', 'user_id');
     }
 
+    public function getKtpUrlAttribute()
+    {
+        if (!$this->ktp_file) {
+            return null;
+        }
+        return asset('storage/' . $this->ktp_file);
+    }
+
     /**
      * Get the kriteria record associated with the datadiri.
      */
@@ -71,6 +79,13 @@ class Datadiri extends Model
     {
         return json_decode($this->riwayat_penyakit, true) ?? [];
     }
+
+
+
+    /**
+     * Get formatted URL for the foto attribute.
+     */
+
 
     /**
      * Get formatted URL for the foto attribute.
