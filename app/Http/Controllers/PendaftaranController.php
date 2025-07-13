@@ -20,12 +20,27 @@ class PendaftaranController extends Controller
     /**
      * Display a listing of the resource.
      */
-    // App/Http/Controllers/PendaftaranController.php
-
     public function index()
     {
         // Check if the current user has already completed registration
         $hasRegistered = Datadiri::where('user_id', Auth::id())->exists();
+
+        // Check if user data was deleted by admin - FIXED
+        $dataDeletedByAdmin = session()->has("user_data_deleted_by_admin_" . Auth::id());
+        $deletionData = null;
+
+        if ($dataDeletedByAdmin) {
+            // Ambil data detail penghapusan
+            $deletionData = session()->get("user_data_deleted_by_admin_" . Auth::id());
+
+            // Log bahwa user telah melihat notifikasi
+            Log::info('User melihat notifikasi penghapusan data', [
+                'user_id' => Auth::id(),
+                'deletion_data' => $deletionData
+            ]);
+
+            // JANGAN hapus session di sini - biarkan user yang menghapus sendiri setelah melihat
+        }
 
         // Check if user is already matched
         $isMatched = false;
@@ -60,8 +75,29 @@ class PendaftaranController extends Controller
             'hasRegistered' => $hasRegistered,
             'isMatched' => $isMatched,
             'matchName' => $matchName,
-            'matchPercentage' => $matchPercentage
+            'matchPercentage' => $matchPercentage,
+            'dataDeletedByAdmin' => $dataDeletedByAdmin,
+            'deletionData' => $deletionData
         ]);
+    }
+
+    /**
+     * Hapus notifikasi penghapusan data oleh admin
+     */
+    public function clearDeletionNotification()
+    {
+        $sessionKey = "user_data_deleted_by_admin_" . Auth::id();
+
+        if (session()->has($sessionKey)) {
+            session()->forget($sessionKey);
+
+            Log::info('User menghapus notifikasi penghapusan data', [
+                'user_id' => Auth::id(),
+                'cleared_at' => now()
+            ]);
+        }
+
+        return response()->json(['success' => true]);
     }
 
     /**
@@ -81,6 +117,12 @@ class PendaftaranController extends Controller
         if (Datadiri::where('user_id', Auth::id())->exists()) {
             return redirect()->route('pendaftaran.index')
                 ->with('error', 'Anda telah mengisi data pendaftaran sebelumnya');
+        }
+
+        // Hapus notifikasi penghapusan data jika ada (karena user mendaftar ulang)
+        $sessionKey = "user_data_deleted_by_admin_" . Auth::id();
+        if (session()->has($sessionKey)) {
+            session()->forget($sessionKey);
         }
 
         // Validasi data

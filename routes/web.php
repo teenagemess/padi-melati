@@ -25,6 +25,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/status', [PendaftaranController::class, 'showStatus']);
     Route::post('/pendaftaran/upload-ktp', [PendaftaranController::class, 'storeKtp'])
         ->name('pendaftaran.upload-ktp');
+    Route::delete('/data-pendaftar/{id}', [DataPendaftarController::class, 'destroy'])->name('data-pendaftar.destroy');
+    Route::post('/pendaftaran/clear-deletion-notification', [PendaftaranController::class, 'clearDeletionNotification'])
+        ->name('pendaftaran.clear-deletion-notification');
 });
 
 Route::middleware('admin')->group(function () {

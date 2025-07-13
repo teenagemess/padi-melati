@@ -114,7 +114,6 @@
                 </div>
             </div>
 
-            <!-- Status tab content -->
             <div x-show="tab === 'status'" class="font-sans">
                 <div class="w-full max-w-3xl mx-auto mt-8 bg-white border border-gray-200 rounded-lg shadow-sm">
                     <!-- Header -->
@@ -123,111 +122,167 @@
                         <p class="text-sm text-gray-500">Proses pencarian pasangan hidup</p>
                     </div>
 
+                    <!-- Admin Notification (Data Dihapus) - FIXED -->
+                    @if ($dataDeletedByAdmin && $deletionData)
+                        <div class="p-5 border-b border-gray-200">
+                            <div class="p-4 border border-red-200 rounded-lg bg-red-50">
+                                <div class="flex items-center space-x-3">
+                                    <div class="flex-shrink-0 text-red-500">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h3 class="text-lg font-medium text-red-800">Data Anda Dihapus oleh Admin</h3>
+                                        <p class="mt-1 text-sm text-red-600">
+                                            Data pendaftaran Anda telah dihapus oleh admin pada
+                                            {{ \Carbon\Carbon::parse($deletionData['deleted_at'])->format('d M Y H:i') }}.
+                                            Silakan lakukan pendaftaran ulang untuk melanjutkan proses pencarian jodoh.
+                                        </p>
+                                        @if (isset($deletionData['reason']))
+                                            <p class="mt-1 text-sm text-red-600">
+                                                <strong>Alasan:</strong> {{ $deletionData['reason'] }}
+                                            </p>
+                                        @endif
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <button onclick="clearDeletionNotification()"
+                                            class="text-red-500 hover:text-red-700">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <button @click="tab = 'formulir'"
+                                        class="px-4 py-2 text-sm font-medium text-white transition-colors bg-red-600 rounded-md hover:bg-red-700">
+                                        Daftar Ulang Sekarang
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     <!-- Progress Container - Horizontal -->
                     <div class="p-5">
-                        <div class="flex flex-col">
-                            <!-- Progress Steps - Horizontal -->
-                            <div class="relative flex items-center justify-between mb-8">
-                                <!-- Progress Line -->
-                                <div class="absolute left-0 right-0 z-0 h-1 -translate-y-1/2 bg-gray-200 top-1/2"></div>
-
-                                <!-- Step 1 - Pendaftaran -->
-                                <div class="relative z-10 flex flex-col items-center">
-                                    <div
-                                        class="flex items-center justify-center w-8 h-8 mb-2 text-white rounded-full bg-emerald-500">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20"
-                                            fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                                clip-rule="evenodd" />
-                                        </svg>
+                        @if ($hasRegistered)
+                            <div class="flex flex-col">
+                                <!-- Progress Steps - Horizontal -->
+                                <div class="relative flex items-center justify-between mb-8">
+                                    <!-- Progress Line -->
+                                    <div class="absolute left-0 right-0 z-0 h-1 -translate-y-1/2 bg-gray-200 top-1/2">
                                     </div>
-                                    <span class="text-sm font-medium text-gray-700">Pendaftaran</span>
-                                </div>
 
-                                {{-- <!-- Step 2 - Verifikasi -->
-                                <div class="relative z-10 flex flex-col items-center">
-                                    <div
-                                        class="flex items-center justify-center w-8 h-8 mb-2 text-white rounded-full bg-emerald-500">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20"
-                                            fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                                clip-rule="evenodd" />
-                                        </svg>
-                                    </div>
-                                    <span class="text-sm font-medium text-gray-700">Verifikasi</span>
-                                </div> --}}
-
-                                <!-- Step 3 - Penjodohan -->
-                                <div class="relative z-10 flex flex-col items-center">
-                                    <div
-                                        class="flex items-center justify-center w-8 h-8 rounded-full
-                            {{ $isMatched ? 'bg-emerald-500' : 'bg-blue-500' }} text-white mb-2">
-                                        @if ($isMatched)
+                                    <!-- Step 1 - Pendaftaran -->
+                                    <div class="relative z-10 flex flex-col items-center">
+                                        <div
+                                            class="flex items-center justify-center w-8 h-8 mb-2 text-white rounded-full bg-emerald-500">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20"
                                                 fill="currentColor">
                                                 <path fill-rule="evenodd"
                                                     d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                                                     clip-rule="evenodd" />
                                             </svg>
-                                        @else
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20"
-                                                fill="currentColor">
-                                                <path fill-rule="evenodd"
-                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                                                    clip-rule="evenodd" />
-                                            </svg>
-                                        @endif
+                                        </div>
+                                        <span class="text-sm font-medium text-gray-700">Pendaftaran</span>
                                     </div>
-                                    <span class="text-sm font-medium text-gray-700">Penjodohan</span>
-                                </div>
-                            </div>
 
-                            <!-- Status Detail -->
-                            <div class="p-4 mt-6 rounded-lg bg-gray-50">
-                                @if ($isMatched)
-                                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                                    <!-- Step 3 - Penjodohan -->
+                                    <div class="relative z-10 flex flex-col items-center">
+                                        <div
+                                            class="flex items-center justify-center w-8 h-8 rounded-full
+                                {{ $isMatched ? 'bg-emerald-500' : 'bg-blue-500' }} text-white mb-2">
+                                            @if ($isMatched)
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5"
+                                                    viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd"
+                                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                        clip-rule="evenodd" />
+                                                </svg>
+                                            @else
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5"
+                                                    viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd"
+                                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                                                        clip-rule="evenodd" />
+                                                </svg>
+                                            @endif
+                                        </div>
+                                        <span class="text-sm font-medium text-gray-700">Penjodohan</span>
+                                    </div>
+                                </div>
+
+                                <!-- Status Detail -->
+                                <div class="p-4 mt-6 rounded-lg bg-gray-50">
+                                    @if ($isMatched)
+                                        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="flex-shrink-0 text-emerald-500">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6"
+                                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <h3 class="text-lg font-medium text-gray-800">Jodoh Ditemukan!</h3>
+                                                    <p class="text-sm text-gray-600">Selamat! Kami telah menemukan
+                                                        pasangan
+                                                        untuk Anda</p>
+                                                </div>
+                                            </div>
+                                            <div class="mt-3 text-sm md:mt-0">
+                                                <p class="text-gray-700"><span class="font-medium">Nama:</span>
+                                                    {{ $matchName }}</p>
+                                                <p class="text-gray-700"><span class="font-medium">Kecocokan:</span>
+                                                    {{ $matchPercentage }}%</p>
+                                            </div>
+                                        </div>
+                                    @else
                                         <div class="flex items-center space-x-3">
-                                            <div class="flex-shrink-0 text-emerald-500">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
-                                                    viewBox="0 0 24 24" stroke="currentColor">
+                                            <div class="flex-shrink-0 text-blue-500">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6"
+                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2"
-                                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
                                             </div>
                                             <div>
-                                                <h3 class="text-lg font-medium text-gray-800">Jodoh Ditemukan!</h3>
-                                                <p class="text-sm text-gray-600">Selamat! Kami telah menemukan pasangan
-                                                    untuk Anda</p>
+                                                <h3 class="text-lg font-medium text-gray-800">Dalam Proses</h3>
+                                                <p class="text-sm text-gray-600">Tim kami sedang mencari pasangan yang
+                                                    cocok untuk Anda</p>
                                             </div>
                                         </div>
-                                        <div class="mt-3 text-sm md:mt-0">
-                                            <p class="text-gray-700"><span class="font-medium">Nama:</span>
-                                                {{ $matchName }}</p>
-                                            <p class="text-gray-700"><span class="font-medium">Kecocokan:</span>
-                                                {{ $matchPercentage }}%</p>
-                                        </div>
-                                    </div>
-                                @else
-                                    <div class="flex items-center space-x-3">
-                                        <div class="flex-shrink-0 text-blue-500">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <h3 class="text-lg font-medium text-gray-800">Dalam Proses</h3>
-                                            <p class="text-sm text-gray-600">Tim kami sedang mencari pasangan yang
-                                                cocok untuk Anda</p>
-                                        </div>
-                                    </div>
-                                @endif
+                                    @endif
+                                </div>
                             </div>
-                        </div>
+                        @else
+                            <!-- Belum Mendaftar -->
+                            <div class="py-12 text-center">
+                                <div
+                                    class="flex items-center justify-center w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-gray-400"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                </div>
+                                <h3 class="mb-2 text-lg font-medium text-gray-800">Belum Terdaftar</h3>
+                                <p class="mb-6 text-gray-600">Anda belum melakukan pendaftaran. Silakan lengkapi data
+                                    diri Anda terlebih dahulu.</p>
+                                <button @click="tab = 'data_diri'"
+                                    class="px-6 py-3 font-medium text-white transition-colors bg-blue-600 rounded-md hover:bg-blue-700">
+                                    Mulai Pendaftaran
+                                </button>
+                            </div>
+                        @endif
 
                         <!-- Action Button -->
                         <div class="flex justify-center mt-6">
@@ -239,6 +294,28 @@
                     </div>
                 </div>
             </div>
+
+            <script>
+                function clearDeletionNotification() {
+                    fetch('{{ route('pendaftaran.clear-deletion-notification') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Hide the notification
+                                document.querySelector('.border-red-200').style.display = 'none';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                }
+            </script>
 
             <!-- Registration form only shown if user hasn't registered -->
             <template x-if="!hasRegistered">

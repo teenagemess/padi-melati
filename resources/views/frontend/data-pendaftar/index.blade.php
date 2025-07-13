@@ -70,7 +70,6 @@
                                 <h3 class="text-lg font-bold">{{ $pendaftar->nama_peserta }}</h3>
                                 <p class="text-gray-600">
                                     {{ $pendaftar->jenis_kelamin == 'Laki-laki' ? 'Laki-laki' : 'Perempuan' }}
-                                    {{-- *** PERUBAHAN DI SINI *** --}}
                                     @if ($pendaftar->umur)
                                         • {{ $pendaftar->umur }} tahun
                                     @endif
@@ -82,10 +81,22 @@
                                 @endif
                             </div>
                         </div>
-                        <a href="{{ route('data-pendaftar.show', $pendaftar->id) }}"
-                            class="px-4 py-1 transition-colors duration-200 bg-yellow-400 rounded-md hover:bg-yellow-500">
-                            Detail
-                        </a>
+                        <div class="flex items-center space-x-2">
+                            <a href="{{ route('data-pendaftar.show', $pendaftar->id) }}"
+                                class="px-4 py-1 transition-colors duration-200 bg-yellow-400 rounded-md hover:bg-yellow-500">
+                                Detail
+                            </a>
+                            <form method="POST" action="{{ route('data-pendaftar.destroy', $pendaftar->id) }}"
+                                class="inline-block"
+                                onsubmit="return confirm('Apakah Anda yakin ingin menghapus data pendaftar {{ $pendaftar->nama_peserta }}? User akan dapat melakukan pendaftaran ulang.')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                    class="px-4 py-1 text-white transition-colors duration-200 bg-red-500 rounded-md hover:bg-red-600">
+                                    Hapus
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 @empty
                     <div class="col-span-2">
@@ -218,14 +229,12 @@
                     <div class="p-4 text-center rounded-lg bg-white/10 backdrop-blur-sm">
                         <div class="text-2xl font-bold text-white">
                             {{ \App\Models\Datadiri::where('jenis_kelamin', 'Laki-laki')->whereNotIn('user_id',\App\Models\MatchResult::where('status', 'confirmed')->pluck('laki_id')->merge(\App\Models\MatchResult::where('status', 'confirmed')->pluck('wanita_id'))->unique())->count() }}
-                            {{-- *** PERUBAHAN DI SINI *** --}}
                         </div>
                         <div class="text-sm text-white/80">Laki-laki</div>
                     </div>
                     <div class="p-4 text-center rounded-lg bg-white/10 backdrop-blur-sm">
                         <div class="text-2xl font-bold text-white">
                             {{ \App\Models\Datadiri::where('jenis_kelamin', 'Perempuan')->whereNotIn('user_id',\App\Models\MatchResult::where('status', 'confirmed')->pluck('laki_id')->merge(\App\Models\MatchResult::where('status', 'confirmed')->pluck('wanita_id'))->unique())->count() }}
-                            {{-- *** PERUBAHAN DI SINI *** --}}
                         </div>
                         <div class="text-sm text-white/80">Perempuan</div>
                     </div>
