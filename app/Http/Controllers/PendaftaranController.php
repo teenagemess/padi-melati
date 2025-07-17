@@ -113,84 +113,60 @@ class PendaftaranController extends Controller
      */
     public function store(Request $request)
     {
-        // First check if user has already registered
         if (Datadiri::where('user_id', Auth::id())->exists()) {
             return redirect()->route('pendaftaran.index')
                 ->with('error', 'Anda telah mengisi data pendaftaran sebelumnya');
         }
 
-        // Hapus notifikasi penghapusan data jika ada (karena user mendaftar ulang)
         $sessionKey = "user_data_deleted_by_admin_" . Auth::id();
         if (session()->has($sessionKey)) {
             session()->forget($sessionKey);
         }
 
-        // Validasi data
         $request->validate([
-            // 'nama_peserta' => 'required|string|max:255',
-            // 'nbm' => 'required|string|max:255',
-            // 'tempat_lahir' => 'required|string|max:255',
-            // 'tanggal_lahir' => 'required|date',
-            // 'jenis_kelamin' => 'required|in:L,P',
-            // 'status' => 'required|string|max:255',
-            // 'tinggi_badan' => 'required|numeric|min:100|max:250',
-            // 'berat_badan' => 'required|numeric|min:30|max:200',
-            // 'alamat' => 'required|string|max:500',
-            // 'no_telepon' => 'required|string|max:20',
-            // 'pendidikan' => 'required|string|max:255',
-            // 'pekerjaan' => 'required|string|max:255',
-            // 'penghasilan' => 'required|string|max:255',
-            // 'riwayat_penyakit' => 'nullable|array',
-            // 'riwayat_organisasi' => 'nullable|string|max:500',
-            'ktp' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048', // max 2MB
-            // 'nama_ayah' => 'required|string|max:255',
-            // 'pekerjaan_ayah' => 'required|string|max:255',
-            // 'nama_ibu' => 'required|string|max:255',
-            // 'pekerjaan_ibu' => 'required|string|max:255',
-            // 'visi_pernikahan' => 'nullable|string|max:1000',
-            // 'misi_pernikahan' => 'nullable|string|max:1000',
-            // 'cita_pernikahan' => 'nullable|string|max:1000',
-            // 'karakteristik_diri' => 'nullable|array',
-            // 'karakteristik_pasangan' => 'nullable|array',
+            'ktp' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
+            'tanggal_lahir' => 'required|date|before:today',
+            'nama_peserta' => 'required|string|max:255',
+            'nbm' => 'required|string|max:255',
+            'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
+            'tempat_lahir' => 'required|string|max:255',
+            'tinggi_badan' => 'required|numeric|min:100|max:250',
+            'berat_badan' => 'required|numeric|min:30|max:200',
+            'alamat' => 'required|string|max:255',
+            'no_telepon' => 'required|regex:/^\d{10,13}$/',
+            'pendidikan' => 'required|string|max:255',
+            'pekerjaan' => 'required|string|max:255',
+            'penghasilan' => 'required|string|max:255',
+            'status' => 'required|in:Menikah,Lajang',
+            'nama_ayah' => 'required|string|max:255',
+            'pekerjaan_ayah' => 'required|string|max:255',
+            'nama_ibu' => 'required|string|max:255',
+            'pekerjaan_ibu' => 'required|string|max:255',
+            'visi_pernikahan' => 'required|string|max:255',
+            'misi_pernikahan' => 'required|string|max:255',
+            'cita_pernikahan' => 'required|string|max:255',
+            'karakteristik_diri' => 'required|array|min:1',
+            'karakteristik_pasangan' => 'required|array|min:1',
         ]);
 
         try {
-            // Begin transaction
             DB::beginTransaction();
 
-            // Handle file upload for KTP
             $ktpPath = null;
             if ($request->hasFile('ktp') && $request->file('ktp')->isValid()) {
-                try {
-                    // Store file in storage/app/public/ktp_files
-                    $ktpPath = $request->file('ktp')->store('ktp_files', 'public');
-
-                    // Log successful upload
-                    Log::info('KTP file uploaded successfully', [
-                        'user_id' => Auth::id(),
-                        'file_path' => $ktpPath,
-                        'original_name' => $request->file('ktp')->getClientOriginalName()
-                    ]);
-                } catch (\Exception $e) {
-                    Log::error('KTP file upload failed', [
-                        'user_id' => Auth::id(),
-                        'error' => $e->getMessage()
-                    ]);
-
-                    DB::rollBack();
-                    return redirect()->back()
-                        ->with('error', 'Error uploading KTP file: ' . $e->getMessage())
-                        ->withInput();
-                }
+                $ktpPath = $request->file('ktp')->store('ktp_files', 'public');
+                Log::info('KTP file uploaded successfully', [
+                    'user_id' => Auth::id(),
+                    'file_path' => $ktpPath,
+                    'original_name' => $request->file('ktp')->getClientOriginalName()
+                ]);
             }
 
-            // Handle riwayat_penyakit data
             $riwayat_penyakit = $request->input('riwayat_penyakit', []);
             if ($request->filled('riwayat_penyakit_lain')) {
                 $riwayat_penyakit[] = $request->input('riwayat_penyakit_lain');
             }
 
-            // Simpan Data Diri
             $datadiri = Datadiri::create([
                 'user_id' => Auth::id(),
                 'nama_peserta' => $request->input('nama_peserta'),
@@ -207,11 +183,10 @@ class PendaftaranController extends Controller
                 'penghasilan' => $request->input('penghasilan'),
                 'riwayat_penyakit' => json_encode($riwayat_penyakit),
                 'riwayat_organisasi' => $request->input('riwayat_organisasi'),
-                'ktp_file' => $ktpPath, // FIXED: Changed from 'ktp' to 'ktp_file'
+                'ktp_file' => $ktpPath,
                 'status_pernikahan' => $request->input('status'),
             ]);
 
-            // Simpan data Orangtua
             Orangtua::create([
                 'user_id' => Auth::id(),
                 'nama_ayah' => $request->input('nama_ayah'),
@@ -220,15 +195,13 @@ class PendaftaranController extends Controller
                 'pekerjaan_ibu' => $request->input('pekerjaan_ibu'),
             ]);
 
-
-            // Simpan Pandangan Nikah
             PandanganNikah::create([
                 'user_id' => Auth::id(),
                 'visi_pernikahan' => $request->input('visi_pernikahan'),
                 'misi_pernikahan' => $request->input('misi_pernikahan'),
                 'cita_pernikahan' => $request->input('cita_pernikahan'),
             ]);
-            // Process karakteristik data
+
             $karakteristik_diri = $request->input('karakteristik_diri', []);
             if ($request->filled('karakteristik_diri_lain')) {
                 $karakteristik_diri[] = $request->input('karakteristik_diri_lain');
@@ -239,17 +212,14 @@ class PendaftaranController extends Controller
                 $karakteristik_pasangan[] = $request->input('karakteristik_pasangan_lain');
             }
 
-            // Simpan Kriteria
             Kriteria::create([
                 'user_id' => Auth::id(),
                 'kriteria_diri' => json_encode($karakteristik_diri),
                 'kriteria_pasangan' => json_encode($karakteristik_pasangan),
             ]);
 
-            // Commit transaction
             DB::commit();
 
-            // Log successful registration
             Log::info('User registration completed successfully', [
                 'user_id' => Auth::id(),
                 'datadiri_id' => $datadiri->id,
@@ -259,21 +229,15 @@ class PendaftaranController extends Controller
             return redirect()->route('pendaftaran.index')
                 ->with('success', 'Pendaftaran berhasil disimpan');
         } catch (\Exception $e) {
-            // Rollback transaction
             DB::rollBack();
-
-            // Log error
+            if ($ktpPath && Storage::disk('public')->exists($ktpPath)) {
+                Storage::disk('public')->delete($ktpPath);
+            }
             Log::error('Registration failed', [
                 'user_id' => Auth::id(),
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-
-            // Delete uploaded file if exists
-            if ($ktpPath && Storage::disk('public')->exists($ktpPath)) {
-                Storage::disk('public')->delete($ktpPath);
-            }
-
             return redirect()->back()
                 ->with('error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage())
                 ->withInput();

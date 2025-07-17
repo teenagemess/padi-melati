@@ -19,6 +19,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::patch('/profile/name', [ProfileController::class, 'updateName'])->name('profile.update.name');
+    Route::patch('/profile/email', [ProfileController::class, 'updateEmail'])->name('profile.update.email');
     Route::patch('/profile/image', [ProfileController::class, 'updateImage'])->name('profile.image.update');
     Route::patch('/profile/update-data-diri', [ProfileController::class, 'updateDataDiri'])
         ->name('profile.update-data-diri');

@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Datadiri extends Model
 {
@@ -35,9 +36,16 @@ class Datadiri extends Model
     /**
      * Get the user that owns the datadiri.
      */
+
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    // Accessor for age
+    public function getAgeAttribute()
+    {
+        return Carbon::parse($this->tanggal_lahir)->age;
     }
 
     /**

@@ -2,7 +2,7 @@
     <div class="flex items-center py-60 h-[50vh] px-10 bg-emerald-600">
     </div>
 
-    <div class="max-w-3xl mx-auto mt-[-200px]" x-data="{ tab: 'data-diri' }">
+    <div class="max-w-3xl mx-auto mt-[-200px]" x-data="{ tab: 'data-diri', showKtpModal: false }">
         <div class="relative p-6 text-center bg-white rounded-lg shadow-lg">
             <img src="{{ $dataDiri->user->image ? asset('storage/' . $dataDiri->user->image) : asset('images/default-profile.jpg') }}"
                 class="mx-auto -mt-16 border-4 border-white rounded-full w-52 h-52" alt="Profile">
@@ -54,12 +54,12 @@
 
                     <div class="flex items-start">
                         <span class="w-1/3 font-semibold">Berat Badan</span>
-                        <span class="w-2/3">: {{ $dataDiri->berat_badan ?? '-' }}</span>
+                        <span class="w-2/3">: {{ $dataDiri->berat_badan ?? '-' }} kg</span>
                     </div>
 
                     <div class="flex items-start">
                         <span class="w-1/3 font-semibold">Tinggi Badan</span>
-                        <span class="w-2/3">: {{ $dataDiri->tinggi_badan ?? '-' }}</span>
+                        <span class="w-2/3">: {{ $dataDiri->tinggi_badan ?? '-' }} cm</span>
                     </div>
 
                     <div class="flex items-start">
@@ -90,6 +90,21 @@
                     <div class="flex items-start">
                         <span class="w-1/3 font-semibold">Penghasilan</span>
                         <span class="w-2/3">: {{ $dataDiri->penghasilan ?? '-' }}</span>
+                    </div>
+
+                    <!-- KTP Section -->
+                    <div class="flex items-start">
+                        <span class="w-1/3 font-semibold">KTP</span>
+                        <span class="w-2/3">:
+                            @if ($dataDiri->ktp_file)
+                                <button @click="showKtpModal = true"
+                                    class="text-blue-600 hover:text-blue-800 hover:underline focus:outline-none">
+                                    Lihat KTP
+                                </button>
+                            @else
+                                <span class="text-gray-500">Tidak ada file KTP</span>
+                            @endif
+                        </span>
                     </div>
                 </div>
             </div>
@@ -186,6 +201,69 @@
                 @else
                     <p class="text-gray-500">Data Pandangan Pernikahan Belum Ada</p>
                 @endif
+            </div>
+        </div>
+
+        <!-- KTP Modal -->
+        <div x-show="showKtpModal" x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+            @click="showKtpModal = false">
+
+            <div class="relative max-w-4xl max-h-[90vh] mx-4 bg-white rounded-lg shadow-xl overflow-hidden"
+                @click.stop>
+
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between p-4 border-b">
+                    <h3 class="text-lg font-semibold">KTP - {{ $dataDiri->nama_peserta }}</h3>
+                    <button @click="showKtpModal = false"
+                        class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Modal Content -->
+                <div class="p-4 max-h-[80vh] overflow-auto">
+                    @if ($dataDiri->ktp_file)
+                        @php
+                            $extension = pathinfo($dataDiri->ktp_file, PATHINFO_EXTENSION);
+                            $isImage = in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif']);
+                        @endphp
+
+                        @if ($isImage)
+                            <img src="{{ asset('storage/' . $dataDiri->ktp_file) }}"
+                                alt="KTP {{ $dataDiri->nama_peserta }}"
+                                class="h-auto max-w-full mx-auto rounded-lg shadow-md">
+                        @else
+                            <div class="py-8 text-center">
+                                <div class="mb-4">
+                                    <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <p class="mb-4 text-gray-600">File KTP ({{ strtoupper($extension) }})</p>
+                                <a href="{{ asset('storage/' . $dataDiri->ktp_file) }}" target="_blank"
+                                    class="inline-flex items-center px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                        </path>
+                                    </svg>
+                                    Download KTP
+                                </a>
+                            </div>
+                        @endif
+                    @endif
+                </div>
             </div>
         </div>
     </div>

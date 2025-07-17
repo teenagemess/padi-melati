@@ -271,9 +271,9 @@
             </form>
         </x-modal>
 
-        <!--Modals Email-->
+        <!--Modal Email-->
         <x-modal name="email-edit">
-            <form method="post" action="{{ route('profile.update') }}" class="p-6">
+            <form method="post" action="{{ route('profile.update.email') }}" class="p-6">
                 @csrf
                 @method('patch')
 
@@ -283,33 +283,37 @@
 
                 @auth
                     <p class="mt-1 text-sm text-gray-900 dark:text-gray-400">
-
-                        Email Anda saat ini adalah <span class="text-blue-700 underline">{{ Auth::user()->email }} </span>
-                        Ingin menggantinya dengan email
-                        lain?
+                        Email Anda saat ini adalah <span class="text-blue-700 underline">{{ Auth::user()->email }}</span>
+                        Ingin menggantinya dengan email lain?
                     </p>
                 @endauth
 
-                <div>
+                <div class="mt-4">
+                    <x-input-label for="email" :value="__('Email Baru')" />
                     <x-text-input placeholder="Alamat Email" id="email" class="block w-full mt-1" type="email"
                         name="email" :value="old('email')" required autocomplete="username" />
                     <x-input-error :messages="$errors->get('email')" class="mt-2" />
                 </div>
 
-                <div class="flex items-center justify-end gap-4 mt-3">
-                    <x-primary-button>{{ __('Save') }}</x-primary-button>
-
-                    @if (session('status') === 'profile-updated')
-                        <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2000)"
-                            class="text-sm text-gray-600 dark:text-gray-400">{{ __('Saved.') }}</p>
-                    @endif
+                <div class="flex items-center justify-end gap-4 mt-6">
+                    <x-secondary-button x-on:click="$dispatch('close')">
+                        {{ __('Batal') }}
+                    </x-secondary-button>
+                    <x-primary-button>{{ __('Simpan') }}</x-primary-button>
                 </div>
+
+                @if (session('status') === 'email-updated')
+                    <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2000)"
+                        class="mt-2 text-sm text-green-600 dark:text-green-400">
+                        {{ __('Email berhasil diperbarui!') }}
+                    </p>
+                @endif
             </form>
         </x-modal>
 
-        <!--Modals Nama-->
+        <!--Modal Nama-->
         <x-modal name="nama-edit">
-            <form method="post" action="{{ route('profile.update') }}" class="p-6">
+            <form method="post" action="{{ route('profile.update.name') }}" class="p-6">
                 @csrf
                 @method('patch')
 
@@ -317,20 +321,26 @@
                     {{ __('Ubah Nama') }}
                 </h2>
 
-                <div>
+                <div class="mt-4">
+                    <x-input-label for="name" :value="__('Nama Lengkap')" />
                     <x-text-input placeholder="Nama" id="name" name="name" type="text"
                         class="block w-full mt-1" :value="old('name', $user->name)" required autofocus autocomplete="name" />
                     <x-input-error class="mt-2" :messages="$errors->get('name')" />
                 </div>
 
-                <div class="flex items-center justify-end gap-4 mt-3">
-                    <x-primary-button>{{ __('Save') }}</x-primary-button>
-
-                    @if (session('status') === 'profile-updated')
-                        <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2000)"
-                            class="text-sm text-gray-600 dark:text-gray-400">{{ __('Saved.') }}</p>
-                    @endif
+                <div class="flex items-center justify-end gap-4 mt-6">
+                    <x-secondary-button x-on:click="$dispatch('close')">
+                        {{ __('Batal') }}
+                    </x-secondary-button>
+                    <x-primary-button>{{ __('Simpan') }}</x-primary-button>
                 </div>
+
+                @if (session('status') === 'name-updated')
+                    <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2000)"
+                        class="mt-2 text-sm text-green-600 dark:text-green-400">
+                        {{ __('Nama berhasil diperbarui!') }}
+                    </p>
+                @endif
             </form>
         </x-modal>
 

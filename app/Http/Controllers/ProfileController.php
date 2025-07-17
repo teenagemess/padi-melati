@@ -40,7 +40,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update the user's profile information.
+     * Update the user's profile information (untuk email).
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
@@ -53,6 +53,39 @@ class ProfileController extends Controller
         $request->user()->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
+    }
+
+    /**
+     * Update user's name only
+     */
+    public function updateName(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $user = $request->user();
+        $user->name = $request->name;
+        $user->save();
+
+        return Redirect::route('profile.edit')->with('status', 'name-updated');
+    }
+
+    /**
+     * Update user's email only
+     */
+    public function updateEmail(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'email' => 'required|string|email|max:255|unique:users,email,' . $request->user()->id,
+        ]);
+
+        $user = $request->user();
+        $user->email = $request->email;
+        $user->email_verified_at = null; // Reset email verification
+        $user->save();
+
+        return Redirect::route('profile.edit')->with('status', 'email-updated');
     }
 
     public function updateDataDiri(Request $request)
@@ -85,7 +118,6 @@ class ProfileController extends Controller
                         $dataDiri->$field = $request->input($field);
                     }
                 }
-
 
                 $dataDiri->save();
                 DB::commit();

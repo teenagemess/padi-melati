@@ -28,11 +28,154 @@
             karakteristik_diri_lain: '',
             karakteristik_pasangan: [],
             karakteristik_pasangan_lain: '',
+            // preferred_age: '',
             visi_pernikahan: '',
             misi_pernikahan: '',
             cita_pernikahan: ''
         },
+        errors: {},
         hasRegistered: {{ $hasRegistered ? 'true' : 'false' }},
+        validateForm() {
+            this.errors = {};
+            let hasError = false;
+    
+            // Validate required fields based on current tab
+            if (this.tab === 'data_diri') {
+                if (!this.formData.nbm) {
+                    this.errors.nbm = 'NBM wajib diisi';
+                    hasError = true;
+                }
+                if (!this.formData.nama_peserta) {
+                    this.errors.nama_peserta = 'Nama wajib diisi';
+                    hasError = true;
+                }
+                if (!this.formData.tempat_lahir) {
+                    this.errors.tempat_lahir = 'Tempat lahir wajib diisi';
+                    hasError = true;
+                }
+                if (!this.formData.tanggal_lahir) {
+                    this.errors.tanggal_lahir = 'Tanggal lahir wajib diisi';
+                    hasError = true;
+                } else if (new Date(this.formData.tanggal_lahir) > new Date()) {
+                    this.errors.tanggal_lahir = 'Tanggal lahir tidak boleh di masa depan';
+                    hasError = true;
+                } else {
+                    const age = this.calculateAge();
+                    if (age < 18 || age > 100) {
+                        this.errors.tanggal_lahir = 'Usia harus antara 18 dan 100 tahun';
+                        hasError = true;
+                    }
+                }
+                if (!this.formData.tanggal_lahir) {
+                    this.errors.tanggal_lahir = 'Tanggal lahir wajib diisi';
+                    hasError = true;
+                }
+                if (!this.formData.jenis_kelamin) {
+                    this.errors.jenis_kelamin = 'Jenis kelamin wajib dipilih';
+                    hasError = true;
+                }
+                if (!this.formData.status) {
+                    this.errors.status = 'Status wajib dipilih';
+                    hasError = true;
+                }
+                if (!this.formData.tinggi_badan) {
+                    this.errors.tinggi_badan = 'Tinggi badan wajib diisi';
+                    hasError = true;
+                } else if (this.formData.tinggi_badan < 100 || this.formData.tinggi_badan > 250) {
+                    this.errors.tinggi_badan = 'Tinggi badan harus antara 100-250 cm';
+                    hasError = true;
+                }
+                if (!this.formData.berat_badan) {
+                    this.errors.berat_badan = 'Berat badan wajib diisi';
+                    hasError = true;
+                } else if (this.formData.berat_badan < 30 || this.formData.berat_badan > 200) {
+                    this.errors.berat_badan = 'Berat badan harus antara 30-200 kg';
+                    hasError = true;
+                }
+                if (!this.formData.alamat) {
+                    this.errors.alamat = 'Alamat wajib diisi';
+                    hasError = true;
+                }
+                if (!this.formData.no_telepon) {
+                    this.errors.no_telepon = 'No. telepon wajib diisi';
+                    hasError = true;
+                } else if (!/^\d{10,13}$/.test(this.formData.no_telepon)) {
+                    this.errors.no_telepon = 'No. telepon harus 10-13 digit angka';
+                    hasError = true;
+                }
+                if (!this.formData.pendidikan) {
+                    this.errors.pendidikan = 'Pendidikan wajib dipilih';
+                    hasError = true;
+                }
+                if (!this.formData.pekerjaan) {
+                    this.errors.pekerjaan = 'Pekerjaan wajib dipilih';
+                    hasError = true;
+                }
+                if (!this.formData.penghasilan) {
+                    this.errors.penghasilan = 'Penghasilan wajib dipilih';
+                    hasError = true;
+                }
+                if (!document.getElementById('ktp').files[0]) {
+                    this.errors.ktp = 'File KTP wajib diunggah';
+                    hasError = true;
+                }
+            } else if (this.tab === 'data_orang_tua') {
+                if (!this.formData.nama_ayah) {
+                    this.errors.nama_ayah = 'Nama ayah wajib diisi';
+                    hasError = true;
+                }
+                if (!this.formData.pekerjaan_ayah) {
+                    this.errors.pekerjaan_ayah = 'Pekerjaan ayah wajib dipilih';
+                    hasError = true;
+                }
+                if (!this.formData.nama_ibu) {
+                    this.errors.nama_ibu = 'Nama ibu wajib diisi';
+                    hasError = true;
+                }
+                if (!this.formData.pekerjaan_ibu) {
+                    this.errors.pekerjaan_ibu = 'Pekerjaan ibu wajib dipilih';
+                    hasError = true;
+                }
+            } else if (this.tab === 'karakteristik') {
+                if (this.formData.karakteristik_diri.length === 0 && !this.formData.karakteristik_diri_lain) {
+                    this.errors.karakteristik_diri = 'Pilih setidaknya satu karakteristik diri atau isi kolom lainnya';
+                    hasError = true;
+                }
+                if (this.formData.karakteristik_pasangan.length === 0 && !this.formData.karakteristik_pasangan_lain && !this.formData.preferred_age) {
+                    this.errors.karakteristik_pasangan = 'Pilih setidaknya satu karakteristik pasangan, isi kolom lainnya, atau pilih kriteria usia';
+                    hasError = true;
+                }
+                // if (!this.formData.preferred_age) {
+                //     this.errors.preferred_age = 'Kriteria usia wajib dipilih';
+                //     hasError = true;
+                // }
+                // Validate age criteria
+                const ageCriteria = ['Seumuran', 'Lebih Tua', 'Lebih Muda'];
+                const selectedAgeCriteria = this.formData.karakteristik_pasangan.filter(item => ageCriteria.includes(item));
+                if (selectedAgeCriteria.length > 1 && !this.formData.karakteristik_pasangan.includes('Tidak Memandang Usia')) {
+                    this.errors.karakteristik_pasangan = 'Pilih hanya satu kriteria usia (Seumuran, Lebih Tua, atau Lebih Muda)';
+                    hasError = true;
+                }
+            } else if (this.tab === 'pandangan') {
+                if (!this.formData.visi_pernikahan) {
+                    this.errors.visi_pernikahan = 'Visi pernikahan wajib diisi';
+                    hasError = true;
+                }
+                if (!this.formData.misi_pernikahan) {
+                    this.errors.misi_pernikahan = 'Misi pernikahan wajib diisi';
+                    hasError = true;
+                }
+                if (!this.formData.cita_pernikahan) {
+                    this.errors.cita_pernikahan = 'Cita-cita pernikahan wajib diisi';
+                    hasError = true;
+                }
+            }
+    
+            if (hasError) {
+                return false;
+            }
+            return true;
+        },
         updateRiwayatPenyakit(event, penyakit) {
             if (event.target.checked) {
                 if (!this.formData.riwayat_penyakit.includes(penyakit)) {
@@ -60,6 +203,23 @@
             } else {
                 this.formData.karakteristik_pasangan.splice(index, 1);
             }
+            const ageCriteria = ['Seumuran', 'Lebih Tua', 'Lebih Muda'];
+            if (ageCriteria.includes(karakteristik) && !this.formData.karakteristik_pasangan.includes('Tidak Memandang Usia')) {
+                this.formData.karakteristik_pasangan = this.formData.karakteristik_pasangan.filter(item => !ageCriteria.includes(item) || item === karakteristik);
+            }
+        },
+        calculateAge() {
+            if (this.formData.tanggal_lahir) {
+                const birthDate = new Date(this.formData.tanggal_lahir);
+                const today = new Date();
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const monthDiff = today.getMonth() - birthDate.getMonth();
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+                return age;
+            }
+            return '';
         }
     }" class="flex justify-center min-h-[80vh] bg-primary">
         <div class="w-full p-12 pt-24 bg-[#D9D9D9] max-w-7xl rounded-b-xl">
@@ -75,6 +235,12 @@
                     {{ session('error') }}
                 </div>
             @endif
+
+            <!-- General form error -->
+            <div x-show="Object.keys(errors).length > 0 && tab !== 'informasi' && tab !== 'status'"
+                class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
+                Harap lengkapi semua kolom yang diperlukan sebelum melanjutkan.
+            </div>
 
             <!-- Judul Dinamis -->
             <template x-show="tab === 'informasi'">
@@ -121,52 +287,6 @@
                         <h2 class="text-xl font-semibold text-gray-800">Status Pendaftaran</h2>
                         <p class="text-sm text-gray-500">Proses pencarian pasangan hidup</p>
                     </div>
-
-                    <!-- Admin Notification (Data Dihapus) - FIXED -->
-                    @if ($dataDeletedByAdmin && $deletionData)
-                        <div class="p-5 border-b border-gray-200">
-                            <div class="p-4 border border-red-200 rounded-lg bg-red-50">
-                                <div class="flex items-center space-x-3">
-                                    <div class="flex-shrink-0 text-red-500">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                                        </svg>
-                                    </div>
-                                    <div class="flex-1">
-                                        <h3 class="text-lg font-medium text-red-800">Data Anda Dihapus oleh Admin</h3>
-                                        <p class="mt-1 text-sm text-red-600">
-                                            Data pendaftaran Anda telah dihapus oleh admin pada
-                                            {{ \Carbon\Carbon::parse($deletionData['deleted_at'])->format('d M Y H:i') }}.
-                                            Silakan lakukan pendaftaran ulang untuk melanjutkan proses pencarian jodoh.
-                                        </p>
-                                        @if (isset($deletionData['reason']))
-                                            <p class="mt-1 text-sm text-red-600">
-                                                <strong>Alasan:</strong> {{ $deletionData['reason'] }}
-                                            </p>
-                                        @endif
-                                    </div>
-                                    <div class="flex-shrink-0">
-                                        <button onclick="clearDeletionNotification()"
-                                            class="text-red-500 hover:text-red-700">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="mt-4">
-                                    <button @click="tab = 'formulir'"
-                                        class="px-4 py-2 text-sm font-medium text-white transition-colors bg-red-600 rounded-md hover:bg-red-700">
-                                        Daftar Ulang Sekarang
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
 
                     <!-- Progress Container - Horizontal -->
                     <div class="p-5">
@@ -247,8 +367,8 @@
                                     @else
                                         <div class="flex items-center space-x-3">
                                             <div class="flex-shrink-0 text-blue-500">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6"
-                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
+                                                    viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2"
                                                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -320,68 +440,183 @@
             <!-- Registration form only shown if user hasn't registered -->
             <template x-if="!hasRegistered">
                 <!-- Kontainer Utama -->
-                <form method="POST" action="{{ route('pendaftaran.store') }}" enctype="multipart/form-data">
+                <form method="POST" action="{{ route('pendaftaran.store') }}" enctype="multipart/form-data"
+                    @submit.prevent="if(validateForm()) { $el.submit(); }">
                     @csrf
                     <div class="flex flex-col items-center gap-4">
                         <div x-show="tab === 'data_diri'">
                             <div class="grid w-3/4 grid-cols-2 gap-6 mt-8 md:grid-cols-2">
-                                <input x-model="formData.nbm" name="nbm" type="number" placeholder="NBM"
-                                    class="w-full p-3 border rounded-lg" required>
-                                <input x-model="formData.nama_peserta" name="nama_peserta" type="text"
-                                    placeholder="Nama" class="w-full p-3 border rounded-lg" required>
-
-                                <input x-model="formData.tempat_lahir" name="tempat_lahir" type="text"
-                                    placeholder="Tempat Lahir" class="w-full p-3 border rounded-lg" required>
                                 <div class="relative">
-                                    <input x-model="formData.tanggal_lahir" name="tanggal_lahir" type="date"
-                                        placeholder="Tanggal Lahir" class="w-full p-3 border rounded-lg" required>
+                                    <input x-model="formData.nbm" name="nbm" type="number" placeholder="NBM"
+                                        class="w-full p-3 border rounded-lg @error('nbm') border-red-500 @enderror"
+                                        required>
+                                    <div x-show="errors.nbm" x-text="errors.nbm" class="mt-1 text-sm text-red-500">
+                                    </div>
+                                    @error('nbm')
+                                        <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="relative">
+                                    <input x-model="formData.nama_peserta" name="nama_peserta" type="text"
+                                        placeholder="Nama"
+                                        class="w-full p-3 border rounded-lg @error('nama_peserta') border-red-500 @enderror"
+                                        required>
+                                    <div x-show="errors.nama_peserta" x-text="errors.nama_peserta"
+                                        class="mt-1 text-sm text-red-500"></div>
+                                    @error('nama_peserta')
+                                        <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                    @enderror
                                 </div>
 
-                                <select x-model="formData.jenis_kelamin" name="jenis_kelamin"
-                                    class="w-full p-3 border rounded-lg" required>
-                                    <option disabled selected>Jenis Kelamin</option>
-                                    <option value="Laki-laki">Laki-laki</option>
-                                    <option value="Perempuan">Perempuan</option>
-                                </select>
+                                <div class="relative">
+                                    <input x-model="formData.tempat_lahir" name="tempat_lahir" type="text"
+                                        placeholder="Tempat Lahir"
+                                        class="w-full p-3 border rounded-lg @error('tempat_lahir') border-red-500 @enderror"
+                                        required>
+                                    <div x-show="errors.tempat_lahir" x-text="errors.tempat_lahir"
+                                        class="mt-1 text-sm text-red-500"></div>
+                                    @error('tempat_lahir')
+                                        <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="relative">
+                                    <input x-model="formData.tanggal_lahir" name="tanggal_lahir" type="date"
+                                        placeholder="Tanggal Lahir"
+                                        class="w-full p-3 border rounded-lg @error('tanggal_lahir') border-red-500 @enderror"
+                                        required @change="calculateAge()">
+                                    <div x-show="formData.tanggal_lahir" x-text="'Usia: ' + calculateAge()"
+                                        class="mt-1 text-sm text-gray-500"></div>
+                                    <div x-show="errors.tanggal_lahir" x-text="errors.tanggal_lahir"
+                                        class="mt-1 text-sm text-red-500"></div>
+                                    @error('tanggal_lahir')
+                                        <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                    @enderror
+                                </div>
 
-                                <input x-model="formData.status" name="status" type="text" placeholder="Status"
-                                    class="w-full p-3 border rounded-lg" required>
+                                <div class="relative">
+                                    <select x-model="formData.jenis_kelamin" name="jenis_kelamin"
+                                        class="w-full p-3 border rounded-lg @error('jenis_kelamin') border-red-500 @enderror"
+                                        required>
+                                        <option style="color: gray">Jenis Kelamin</option>
+                                        <option value="Laki-laki">Laki-laki</option>
+                                        <option value="Perempuan">Perempuan</option>
+                                    </select>
+                                    <div x-show="errors.jenis_kelamin" x-text="errors.jenis_kelamin"
+                                        class="mt-1 text-sm text-red-500"></div>
+                                    @error('jenis_kelamin')
+                                        <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                    @enderror
+                                </div>
 
-                                <input x-model="formData.tinggi_badan" name="tinggi_badan" type="number"
-                                    placeholder="Tinggi Badan" class="w-full p-3 border rounded-lg" required>
-                                <input x-model="formData.berat_badan" name="berat_badan" type="number"
-                                    placeholder="Berat Badan" class="w-full p-3 border rounded-lg" required>
+                                <div class="relative">
+                                    <select x-model="formData.status" name="status"
+                                        class="w-full p-3 border rounded-lg @error('status') border-red-500 @enderror"
+                                        required>
+                                        <option style="color: gray">Status</option>
+                                        <option value="Menikah">Menikah</option>
+                                        <option value="Lajang">Lajang</option>
+                                    </select>
+                                    <div x-show="errors.status" x-text="errors.status"
+                                        class="mt-1 text-sm text-red-500"></div>
+                                    @error('status')
+                                        <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                    @enderror
+                                </div>
 
-                                <input x-model="formData.alamat" name="alamat" type="text" placeholder="Alamat"
-                                    class="w-full col-span-2 p-3 border rounded-lg" required>
-                                <input x-model="formData.no_telepon" name="no_telepon" type="tel"
-                                    placeholder="No. Telepon" class="w-full col-span-2 p-3 border rounded-lg"
-                                    required>
+                                <div class="relative">
+                                    <input x-model="formData.tinggi_badan" name="tinggi_badan" type="number"
+                                        placeholder="Tinggi Badan"
+                                        class="w-full p-3 border rounded-lg @error('tinggi_badan') border-red-500 @enderror"
+                                        required>
+                                    <div x-show="errors.tinggi_badan" x-text="errors.tinggi_badan"
+                                        class="mt-1 text-sm text-red-500"></div>
+                                    @error('tinggi_badan')
+                                        <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="relative">
+                                    <input x-model="formData.berat_badan" name="berat_badan" type="number"
+                                        placeholder="Berat Badan"
+                                        class="w-full p-3 border rounded-lg @error('berat_badan') border-red-500 @enderror"
+                                        required>
+                                    <div x-show="errors.berat_badan" x-text="errors.berat_badan"
+                                        class="mt-1 text-sm text-red-500"></div>
+                                    @error('berat_badan')
+                                        <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                    @enderror
+                                </div>
 
-                                <select x-model="formData.pendidikan" name="pendidikan"
-                                    class="w-full p-3 border rounded-lg" required>
-                                    <option disabled selected>Pendidikan</option>
-                                    <option>SMA</option>
-                                    <option>Sarjana</option>
-                                    <option>Lainnya</option>
-                                </select>
+                                <div class="relative col-span-2">
+                                    <input x-model="formData.alamat" name="alamat" type="text"
+                                        placeholder="Alamat"
+                                        class="w-full p-3 border rounded-lg @error('alamat') border-red-500 @enderror"
+                                        required>
+                                    <div x-show="errors.alamat" x-text="errors.alamat"
+                                        class="mt-1 text-sm text-red-500"></div>
+                                    @error('alamat')
+                                        <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="relative col-span-2">
+                                    <input x-model="formData.no_telepon" name="no_telepon" type="tel"
+                                        placeholder="No. Telepon"
+                                        class="w-full p-3 border rounded-lg @error('no_telepon') border-red-500 @enderror"
+                                        required>
+                                    <div x-show="errors.no_telepon" x-text="errors.no_telepon"
+                                        class="mt-1 text-sm text-red-500"></div>
+                                    @error('no_telepon')
+                                        <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                    @enderror
+                                </div>
 
-                                <select x-model="formData.pekerjaan" name="pekerjaan"
-                                    class="w-full p-3 border rounded-lg" required>
-                                    <option disabled selected>Pekerjaan</option>
-                                    <option>PNS</option>
-                                    <option>Wiraswasta</option>
-                                    <option>Lainnya</option>
-                                </select>
+                                <div class="relative">
+                                    <select x-model="formData.pendidikan" name="pendidikan"
+                                        class="w-full p-3 border rounded-lg @error('pendidikan') border-red-500 @enderror"
+                                        required>
+                                        <option style="color: gray">Pendidikan</option>
+                                        <option>SMA</option>
+                                        <option>Sarjana</option>
+                                        <option>Lainnya</option>
+                                    </select>
+                                    <div x-show="errors.pendidikan" x-text="errors.pendidikan"
+                                        class="mt-1 text-sm text-red-500"></div>
+                                    @error('pendidikan')
+                                        <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                    @enderror
+                                </div>
 
-                                <select x-model="formData.penghasilan" name="penghasilan"
-                                    class="w-full p-3 border rounded-lg" required>
-                                    <option disabled selected>Penghasilan</option>
-                                    <option>
-                                        < 1 juta</option>
-                                    <option>1–5 juta</option>
-                                    <option>> 5 juta</option>
-                                </select>
+                                <div class="relative">
+                                    <select x-model="formData.pekerjaan" name="pekerjaan"
+                                        class="w-full p-3 border rounded-lg @error('pekerjaan') border-red-500 @enderror"
+                                        required>
+                                        <option style="color: gray">Pekerjaan</option>
+                                        <option>PNS</option>
+                                        <option>Wiraswasta</option>
+                                        <option>Lainnya</option>
+                                    </select>
+                                    <div x-show="errors.pekerjaan" x-text="errors.pekerjaan"
+                                        class="mt-1 text-sm text-red-500"></div>
+                                    @error('pekerjaan')
+                                        <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="relative">
+                                    <select x-model="formData.penghasilan" name="penghasilan"
+                                        class="w-full p-3 border rounded-lg @error('penghasilan') border-red-500 @enderror"
+                                        required>
+                                        <option style="color: gray">Penghasilan</option>
+                                        <option>
+                                            < 1 juta</option>
+                                        <option>1–5 juta</option>
+                                        <option>> 5 juta</option>
+                                    </select>
+                                    <div x-show="errors.penghasilan" x-text="errors.penghasilan"
+                                        class="mt-1 text-sm text-red-500"></div>
+                                    @error('penghasilan')
+                                        <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                    @enderror
+                                </div>
 
                                 <!-- Riwayat Penyakit -->
                                 <div class="col-span-2">
@@ -479,8 +714,8 @@
                                         </template>
 
                                         <!-- Error Message dari JavaScript -->
-                                        <div x-show="errorMessage" x-cloak class="text-sm text-red-500"
-                                            x-text="errorMessage"></div>
+                                        <div x-show="errorMessage || errors.ktp" x-text="errorMessage || errors.ktp"
+                                            class="text-sm text-red-500" x-cloak></div>
 
                                         <!-- Upload Area -->
                                         <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -536,24 +771,51 @@
                         <div x-show="tab === 'data_orang_tua'">
                             <div class="w-3/4 mt-8 space-y-4">
                                 <input x-model="formData.nama_ayah" name="nama_ayah" type="text"
-                                    placeholder="Nama Ayah" class="w-full p-3 border rounded-lg" required>
+                                    placeholder="Nama Ayah"
+                                    class="w-full p-3 border rounded-lg >
+                                    <div x-show="errors.nama_ayah"
+                                    x-text="errors.nama_ayah" class="mt-1 text-sm text-red-500">
+                                @error('nama_ayah')
+                                    <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                @enderror
+
                                 <select x-model="formData.pekerjaan_ayah" name="pekerjaan_ayah"
-                                    class="w-full p-3 border rounded-lg" required>
+                                    class="w-full p-3 border rounded-lg @error('pekerjaan_ayah') border-red-500 @enderror"
+                                    required>
                                     <option value="">Pekerjaan Ayah</option>
                                     <option>Petani</option>
                                     <option>PNS</option>
                                     <option>Wiraswasta</option>
                                 </select>
+                                <div x-show="errors.pekerjaan_ayah" x-text="errors.pekerjaan_ayah"
+                                    class="mt-1 text-sm text-red-500"></div>
+                                @error('pekerjaan_ayah')
+                                    <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                @enderror
+
                                 <input x-model="formData.nama_ibu" name="nama_ibu" type="text"
-                                    placeholder="Nama Ibu" class="w-full p-3 border rounded-lg" required>
+                                    placeholder="Nama Ibu"
+                                    class="w-full p-3 border rounded-lg @error('nama_ibu') border-red-500 @enderror"
+                                    required>
+                                <div x-show="errors.nama_ibu" x-text="errors.nama_ibu"
+                                    class="mt-1 text-sm text-red-500"></div>
+                                @error('nama_ibu')
+                                    <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                @enderror
+
                                 <select x-model="formData.pekerjaan_ibu" name="pekerjaan_ibu"
-                                    class="w-full p-3 border rounded-lg" required>
+                                    class="w-full p-3 border rounded-lg @error('pekerjaan_ibu') border-red-500 @enderror"
+                                    required>
                                     <option value="">Pekerjaan Ibu</option>
                                     <option>Ibu Rumah Tangga</option>
                                     <option>PNS</option>
                                     <option>Wiraswasta</option>
                                 </select>
-
+                                <div x-show="errors.pekerjaan_ibu" x-text="errors.pekerjaan_ibu"
+                                    class="mt-1 text-sm text-red-500"></div>
+                                @error('pekerjaan_ibu')
+                                    <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
 
@@ -562,7 +824,8 @@
                         <div x-show="tab === 'karakteristik'">
                             <div class="flex justify-between w-full gap-8 px-10 mt-8">
                                 <div>
-                                    <h3 class="mb-2 text-2xl font-semibold">Karakteristik Diri Anda</h3>
+                                    <h3 class="mb-2 text-2xl font-semibold">Karakteristik Diri Anda <span
+                                            class="text-red-500">*</span></h3>
                                     <div class="grid grid-cols-2 gap-2">
                                         <template
                                             x-for="item in ['Beriman', 'Seiman', 'Rajin', 'Setia', 'Sabar', 'Bertanggungjawab', 'Jujur', 'Sederhana', 'Ramah', 'Tertutup', 'Supel', 'Perhatian', 'Romantis', 'Cuek', 'Berpendidikan', 'Berpengalaman', 'Penurut', 'Ikhlas']"
@@ -576,11 +839,20 @@
                                         </template>
                                         <input x-model="formData.karakteristik_diri_lain" type="text"
                                             name="karakteristik_diri_lain" placeholder="Lainnya"
-                                            class="w-full p-2 mt-2 border rounded-md">
+                                            class="w-full p-2 mt-2 border rounded-md @error('karakteristik_diri_lain') border-red-500 @enderror">
+                                        <div x-show="errors.karakteristik_diri" x-text="errors.karakteristik_diri"
+                                            class="mt-1 text-sm text-red-500"></div>
+                                        @error('karakteristik_diri')
+                                            <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                        @enderror
+                                        @error('karakteristik_diri_lain')
+                                            <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
                                 <div>
-                                    <h3 class="mb-2 text-2xl font-semibold">Karakteristik Calon Pasangan Anda</h3>
+                                    <h3 class="mb-2 text-2xl font-semibold">Karakteristik Calon Pasangan Anda <span
+                                            class="text-red-500">*</span></h3>
                                     <div class="grid grid-cols-2 gap-2">
                                         <template
                                             x-for="item in ['Beriman', 'Seiman', 'Rajin', 'Setia', 'Sabar', 'Bertanggungjawab', 'Jujur', 'Sederhana', 'Ramah', 'Tertutup', 'Supel', 'Perhatian', 'Romantis', 'Cuek', 'Berpendidikan', 'Berpengalaman', 'Penurut', 'Ikhlas', 'Seumuran', 'Lebih Tua', 'Lebih Muda', 'Tidak Memandang Usia']"
@@ -594,7 +866,16 @@
                                         </template>
                                         <input x-model="formData.karakteristik_pasangan_lain" type="text"
                                             name="karakteristik_pasangan_lain" placeholder="Lainnya"
-                                            class="w-full p-2 mt-2 border rounded-md">
+                                            class="w-full p-2 mt-2 border rounded-md @error('karakteristik_pasangan_lain') border-red-500 @enderror">
+                                        <div x-show="errors.karakteristik_pasangan"
+                                            x-text="errors.karakteristik_pasangan" class="mt-1 text-sm text-red-500">
+                                        </div>
+                                        @error('karakteristik_pasangan')
+                                            <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                        @enderror
+                                        @error('karakteristik_pasangan_lain')
+                                            <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
@@ -604,13 +885,36 @@
                         <div x-show="tab === 'pandangan'">
                             <div class="w-3/4 mt-8 space-y-4">
                                 <input x-model="formData.visi_pernikahan" name="visi_pernikahan" type="text"
-                                    placeholder="Visi Pernikahan" class="w-full p-3 border rounded-lg">
-                                <input x-model="formData.misi_pernikahan" name="misi_pernikahan" type="text"
-                                    placeholder="Misi Pernikahan" class="w-full p-3 border rounded-lg">
-                                <input x-model="formData.cita_pernikahan" name="cita_pernikahan" type="text"
-                                    placeholder="Cita-cita Pernikahan" class="w-full p-3 border rounded-lg">
-                            </div>
+                                    placeholder="Visi Pernikahan"
+                                    class="w-full p-3 border rounded-lg @error('visi_pernikahan') border-red-500 @enderror"
+                                    required>
+                                <div x-show="errors.visi_pernikahan" x-text="errors.visi_pernikahan"
+                                    class="mt-1 text-sm text-red-500"></div>
+                                @error('visi_pernikahan')
+                                    <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                @enderror
 
+                                <input x-model="formData.misi_pernikahan" name="misi_pernikahan" type="text"
+                                    placeholder="Misi Pernikahan"
+                                    class="w-full p-3 border rounded-lg @error('misi_pernikahan') border-red-500 @enderror"
+                                    required>
+                                <div x-show="errors.misi_pernikahan" x-text="errors.misi_pernikahan"
+                                    class="mt-1 text-sm text-red-500"></div>
+                                @error('misi_pernikahan')
+                                    <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                @enderror
+
+                                <input x-model="formData.cita_pernikahan" name="cita_pernikahan" type="text"
+                                    placeholder="Cita-cita Pernikahan"
+                                    class="w-full p-3 border rounded-lg @error('cita_pernikahan') border-red-500 @enderror"
+                                    required>
+                                <div x-show="errors.cita_pernikahan" x-text="errors.cita_pernikahan"
+                                    class="mt-1 text-sm text-red-500"></div>
+                                @error('cita_pernikahan')
+                                    <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                @enderror
+
+                            </div>
                         </div>
 
                     </div>
@@ -627,21 +931,23 @@
             <div x-show="tab === 'data_diri' && !hasRegistered">
                 <div class="flex justify-between mt-6">
                     <x-secondary-button @click="tab = 'informasi'">Kembali</x-secondary-button>
-                    <x-primary-button @click="tab = 'data_orang_tua'">Selanjutnya</x-primary-button>
+                    <x-primary-button
+                        @click="if(validateForm()) { tab = 'data_orang_tua' }">Selanjutnya</x-primary-button>
                 </div>
             </div>
 
             <div x-show="tab === 'data_orang_tua' && !hasRegistered">
                 <div class="flex justify-between mt-6">
                     <x-secondary-button @click="tab = 'data_diri'">Kembali</x-secondary-button>
-                    <x-primary-button @click="tab = 'karakteristik'">Selanjutnya</x-primary-button>
+                    <x-primary-button
+                        @click="if(validateForm()) { tab = 'karakteristik' }">Selanjutnya</x-primary-button>
                 </div>
             </div>
 
             <div x-show="tab === 'karakteristik' && !hasRegistered">
                 <div class="flex justify-between mt-6">
                     <x-secondary-button @click="tab = 'data_orang_tua'">Kembali</x-secondary-button>
-                    <x-primary-button @click="tab = 'pandangan'">Selanjutnya</x-primary-button>
+                    <x-primary-button @click="if(validateForm()) { tab = 'pandangan' }">Selanjutnya</x-primary-button>
                 </div>
             </div>
         </div>

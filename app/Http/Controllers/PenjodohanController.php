@@ -81,13 +81,11 @@ class PenjodohanController extends Controller
      */
     public function showRekomendasi($userId)
     {
-        // Periksa apakah user adalah admin menggunakan Gate
         if (!Gate::allows('admin')) {
             return redirect()->route('dashboard')
                 ->with('error', 'Anda tidak memiliki akses ke halaman ini');
         }
 
-        // Ambil data diri laki-laki
         $lakiLaki = Datadiri::where('user_id', $userId)
             ->where('jenis_kelamin', 'Laki-laki')
             ->first();
@@ -97,15 +95,12 @@ class PenjodohanController extends Controller
                 ->with('error', 'Data pengguna tidak ditemukan');
         }
 
-        // Cek apakah laki-laki sudah dijodohkan
         $existingMatch = MatchResult::where('laki_id', $userId)
             ->where('status', 'confirmed')
             ->first();
 
-        // Jika sudah dijodohkan, tampilkan hanya pasangan yang sudah dikonfirmasi
         if ($existingMatch) {
             $wanita = Datadiri::where('user_id', $existingMatch->wanita_id)->first();
-
             if ($wanita) {
                 $matches = [
                     [
@@ -113,28 +108,23 @@ class PenjodohanController extends Controller
                         'persentase' => $existingMatch->persentase_kecocokan
                     ]
                 ];
-
                 return view('frontend.data-cocok.rekomendasi', [
                     'lakiLaki' => $lakiLaki,
                     'matches' => $matches,
-                    'isMatched' => true // Set true karena sudah ada konfirmasi
+                    'isMatched' => true
                 ]);
             }
         }
 
-        // Jika belum dijodohkan, lanjutkan dengan logika pencarian rekomendasi
-        // Ambil kriteria yang diinginkan laki-laki
         $kriteria = Kriteria::where('user_id', $userId)->first();
         if (!$kriteria) {
             return redirect()->route('frontend.data-cocok.index')
                 ->with('error', 'Kriteria pengguna belum diisi');
         }
 
-        // Decode kriteria pasangan yang diinginkan
         $kriteriaYangDiinginkan = json_decode($kriteria->kriteria_pasangan, true) ?? [];
         $kriteriaDiriLaki = json_decode($kriteria->kriteria_diri, true) ?? [];
 
-        // Ambil semua perempuan (kecuali admin) yang belum dijodohkan
         $matchedWanitaIds = MatchResult::where('status', 'confirmed')
             ->pluck('wanita_id')
             ->toArray();
@@ -146,35 +136,36 @@ class PenjodohanController extends Controller
             ->whereNotIn('user_id', $matchedWanitaIds)
             ->get();
 
-        // Hitung skor kecocokan untuk setiap perempuan
         $matches = [];
+        $lakiAge = $lakiLaki->age; // Get laki-laki's age
 
         foreach ($perempuan as $wanita) {
-            // Ambil kriteria wanita
             $kriteriaWanita = Kriteria::where('user_id', $wanita->user_id)->first();
-
             if ($kriteriaWanita) {
-                // Decode kriteria diri wanita
                 $kriteriaDiriWanita = json_decode($kriteriaWanita->kriteria_diri, true) ?? [];
-
-                // Decode kriteria pasangan yang diinginkan wanita
                 $kriteriaPasanganWanita = json_decode($kriteriaWanita->kriteria_pasangan, true) ?? [];
 
-                // Hitung skor kecocokan laki ke wanita
-                $lakiKeWanita = $this->calculateMatchingScore($kriteriaYangDiinginkan, $kriteriaDiriWanita);
+                $wanitaAge = $wanita->age; // Get wanita's age
 
-                // Hitung skor kecocokan wanita ke laki
-                $wanitaKeLaki = $this->calculateMatchingScore($kriteriaPasanganWanita, $kriteriaDiriLaki);
+                // Calculate scores with age
+                $lakiKeWanita = $this->calculateMatchingScore(
+                    $kriteriaYangDiinginkan,
+                    $kriteriaDiriWanita,
+                    $lakiAge,
+                    $wanitaAge
+                );
+                $wanitaKeLaki = $this->calculateMatchingScore(
+                    $kriteriaPasanganWanita,
+                    $kriteriaDiriLaki,
+                    $wanitaAge,
+                    $lakiAge
+                );
 
-                // Hitung total skor dan persentase kecocokan
                 $totalKarakteristik = count($kriteriaYangDiinginkan) + count($kriteriaPasanganWanita);
                 $totalKecocokan = $lakiKeWanita + $wanitaKeLaki;
-
-                // Hindari pembagian dengan nol
                 $persentase = $totalKarakteristik > 0 ?
                     round(($totalKecocokan / $totalKarakteristik) * 100) : 0;
 
-                // Tambahkan ke array matches
                 $matches[] = [
                     'wanita' => $wanita,
                     'persentase' => $persentase
@@ -182,18 +173,16 @@ class PenjodohanController extends Controller
             }
         }
 
-        // Urutkan berdasarkan persentase tertinggi
         usort($matches, function ($a, $b) {
             return $b['persentase'] <=> $a['persentase'];
         });
 
-        // Ambil 3 rekomendasi teratas
-        $topMatches = array_slice($matches, 0, 3);
+        $topMatches = array_slice($matches, 0, 5);
 
         return view('frontend.data-cocok.rekomendasi', [
             'lakiLaki' => $lakiLaki,
             'matches' => $topMatches,
-            'isMatched' => false // Set false karena belum ada konfirmasi
+            'isMatched' => false
         ]);
     }
 
@@ -262,13 +251,11 @@ class PenjodohanController extends Controller
      */
     public function detailPerbandingan($lakiId, $wanitaId)
     {
-        // Periksa apakah user adalah admin menggunakan Gate
         if (!Gate::allows('admin')) {
             return redirect()->route('dashboard')
                 ->with('error', 'Anda tidak memiliki akses ke halaman ini');
         }
 
-        // Ambil data diri laki-laki dan wanita
         $lakiLaki = Datadiri::where('user_id', $lakiId)->first();
         $wanita = Datadiri::where('user_id', $wanitaId)->first();
 
@@ -277,7 +264,6 @@ class PenjodohanController extends Controller
                 ->with('error', 'Data pengguna tidak ditemukan');
         }
 
-        // Ambil kriteria laki-laki dan wanita
         $kriteriaLaki = Kriteria::where('user_id', $lakiId)->first();
         $kriteriaWanita = Kriteria::where('user_id', $wanitaId)->first();
 
@@ -292,20 +278,33 @@ class PenjodohanController extends Controller
         $kriteriaDiriWanita = json_decode($kriteriaWanita->kriteria_diri, true) ?? [];
         $kriteriaPasanganWanita = json_decode($kriteriaWanita->kriteria_pasangan, true) ?? [];
 
-        // Hitung kecocokan
-        $lakiKeWanita = $this->calculateMatchingScore($kriteriaPasanganLaki, $kriteriaDiriWanita);
-        $wanitaKeLaki = $this->calculateMatchingScore($kriteriaPasanganWanita, $kriteriaDiriLaki);
+        // Get ages
+        $lakiAge = $lakiLaki->age;
+        $wanitaAge = $wanita->age;
 
+        // Calculate matching scores with age
+        $lakiKeWanita = $this->calculateMatchingScore(
+            $kriteriaPasanganLaki,
+            $kriteriaDiriWanita,
+            $lakiAge,
+            $wanitaAge
+        );
+        $wanitaKeLaki = $this->calculateMatchingScore(
+            $kriteriaPasanganWanita,
+            $kriteriaDiriLaki,
+            $wanitaAge,
+            $lakiAge
+        );
 
-        // Ambil data pandangan nikah
-        $pandanganNikahLaki = $lakiLaki->pandanganNikah ?? null;
-        $pandanganNikahWanita = $wanita->pandanganNikah ?? null;
-
-        // Hitung persentase kecocokan
+        // Calculate percentage
         $totalKarakteristik = count($kriteriaPasanganLaki) + count($kriteriaPasanganWanita);
         $totalKecocokan = $lakiKeWanita + $wanitaKeLaki;
         $persentase = $totalKarakteristik > 0 ?
             round(($totalKecocokan / $totalKarakteristik) * 100) : 0;
+
+        // Get marriage perspectives
+        $pandanganNikahLaki = $lakiLaki->pandanganNikah ?? null;
+        $pandanganNikahWanita = $wanita->pandanganNikah ?? null;
 
         return view('frontend.data-cocok.detail', [
             'lakiLaki' => $lakiLaki,
@@ -320,36 +319,47 @@ class PenjodohanController extends Controller
             'pandanganNikahLaki' => $pandanganNikahLaki,
             'pandanganNikahWanita' => $pandanganNikahWanita
         ]);
+
+        /**
+         * Hitung skor kecocokan antara kriteria yang diinginkan dan kriteria yang dimiliki
+         */
     }
 
-    /**
-     * Hitung skor kecocokan antara kriteria yang diinginkan dan kriteria yang dimiliki
-     */
-    private function calculateMatchingScore(array $desiredCriteria, array $actualCriteria): int
+    private function calculateMatchingScore(array $desiredCriteria, array $actualCriteria, $desiredUserAge, $actualUserAge): int
     {
         $score = 0;
+        $ageCriteria = ['Seumuran', 'Lebih Tua', 'Lebih Muda', 'Tidak Memandang Usia'];
 
-        // Untuk setiap kriteria yang diinginkan, periksa apakah ada dalam kriteria yang dimiliki
         foreach ($desiredCriteria as $criteria) {
-            if (in_array($criteria, $actualCriteria)) {
-                $score++;
+            if (in_array($criteria, $ageCriteria)) {
+                if ($criteria === 'Tidak Memandang Usia') {
+                    $score++;
+                } elseif ($criteria === 'Seumuran') {
+                    if (abs($desiredUserAge - $actualUserAge) <= 2) {
+                        $score++;
+                    }
+                } elseif ($criteria === 'Lebih Tua') {
+                    if ($actualUserAge > $desiredUserAge) {
+                        $score++;
+                    }
+                } elseif ($criteria === 'Lebih Muda') {
+                    if ($actualUserAge < $desiredUserAge) {
+                        $score++;
+                    }
+                }
+            } else {
+                if (in_array($criteria, $actualCriteria)) {
+                    $score++;
+                }
             }
         }
 
         return $score;
     }
 
-    /**
-     * Hitung persentase kecocokan
-     */
     private function calculatePercentage(int $totalScore, array $criteria1, array $criteria2): int
     {
         $totalCriteria = count($criteria1) + count($criteria2);
-
-        if ($totalCriteria === 0) {
-            return 0;
-        }
-
-        return round(($totalScore / $totalCriteria) * 100);
+        return $totalCriteria > 0 ? round(($totalScore / $totalCriteria) * 100) : 0;
     }
 }
