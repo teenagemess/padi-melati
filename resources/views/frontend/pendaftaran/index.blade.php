@@ -25,10 +25,10 @@
             nama_ibu: '',
             pekerjaan_ibu: '',
             karakteristik_diri: [],
-            karakteristik_diri_lain: '',
+            karakteristik_diri_lain: [''],
             karakteristik_pasangan: [],
-            karakteristik_pasangan_lain: '',
-            // preferred_age: '',
+            karakteristik_pasangan_lain: [''],
+            preferred_age: '',
             visi_pernikahan: '',
             misi_pernikahan: '',
             cita_pernikahan: ''
@@ -65,10 +65,6 @@
                         this.errors.tanggal_lahir = 'Usia harus antara 18 dan 100 tahun';
                         hasError = true;
                     }
-                }
-                if (!this.formData.tanggal_lahir) {
-                    this.errors.tanggal_lahir = 'Tanggal lahir wajib diisi';
-                    hasError = true;
                 }
                 if (!this.formData.jenis_kelamin) {
                     this.errors.jenis_kelamin = 'Jenis kelamin wajib dipilih';
@@ -137,25 +133,38 @@
                     hasError = true;
                 }
             } else if (this.tab === 'karakteristik') {
-                if (this.formData.karakteristik_diri.length === 0 && !this.formData.karakteristik_diri_lain) {
+                // Validate karakteristik_diri
+                const karakteristikDiriLainValid = this.formData.karakteristik_diri_lain.filter(item => item.trim()).length;
+                if (this.formData.karakteristik_diri.length === 0 && karakteristikDiriLainValid === 0) {
                     this.errors.karakteristik_diri = 'Pilih setidaknya satu karakteristik diri atau isi kolom lainnya';
                     hasError = true;
                 }
-                if (this.formData.karakteristik_pasangan.length === 0 && !this.formData.karakteristik_pasangan_lain && !this.formData.preferred_age) {
-                    this.errors.karakteristik_pasangan = 'Pilih setidaknya satu karakteristik pasangan, isi kolom lainnya, atau pilih kriteria usia';
+                // Validate karakteristik_pasangan
+                const karakteristikPasanganLainValid = this.formData.karakteristik_pasangan_lain.filter(item => item.trim()).length;
+                if (this.formData.karakteristik_pasangan.length === 0 && karakteristikPasanganLainValid === 0) {
+                    this.errors.karakteristik_pasangan = 'Pilih setidaknya satu karakteristik pasangan atau isi kolom lainnya';
                     hasError = true;
                 }
-                // if (!this.formData.preferred_age) {
-                //     this.errors.preferred_age = 'Kriteria usia wajib dipilih';
-                //     hasError = true;
-                // }
-                // Validate age criteria
                 const ageCriteria = ['Seumuran', 'Lebih Tua', 'Lebih Muda'];
                 const selectedAgeCriteria = this.formData.karakteristik_pasangan.filter(item => ageCriteria.includes(item));
                 if (selectedAgeCriteria.length > 1 && !this.formData.karakteristik_pasangan.includes('Tidak Memandang Usia')) {
                     this.errors.karakteristik_pasangan = 'Pilih hanya satu kriteria usia (Seumuran, Lebih Tua, atau Lebih Muda)';
                     hasError = true;
                 }
+                // Validate individual karakteristik_diri_lain fields
+                this.formData.karakteristik_diri_lain.forEach((item, index) => {
+                    if (item && item.length > 255) {
+                        this.errors[`karakteristik_diri_lain.${index}`] = 'Karakteristik lainnya maksimal 255 karakter';
+                        hasError = true;
+                    }
+                });
+                // Validate individual karakteristik_pasangan_lain fields
+                this.formData.karakteristik_pasangan_lain.forEach((item, index) => {
+                    if (item && item.length > 255) {
+                        this.errors[`karakteristik_pasangan_lain.${index}`] = 'Karakteristik lainnya maksimal 255 karakter';
+                        hasError = true;
+                    }
+                });
             } else if (this.tab === 'pandangan') {
                 if (!this.formData.visi_pernikahan) {
                     this.errors.visi_pernikahan = 'Visi pernikahan wajib diisi';
@@ -220,6 +229,18 @@
                 return age;
             }
             return '';
+        },
+        addKarakteristikDiriLain() {
+            this.formData.karakteristik_diri_lain.push('');
+        },
+        removeKarakteristikDiriLain(index) {
+            this.formData.karakteristik_diri_lain.splice(index, 1);
+        },
+        addKarakteristikPasanganLain() {
+            this.formData.karakteristik_pasangan_lain.push('');
+        },
+        removeKarakteristikPasanganLain(index) {
+            this.formData.karakteristik_pasangan_lain.splice(index, 1);
         }
     }" class="flex justify-center min-h-[80vh] bg-primary">
         <div class="w-full p-12 pt-24 bg-[#D9D9D9] max-w-7xl rounded-b-xl">
@@ -427,7 +448,6 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                // Hide the notification
                                 document.querySelector('.border-red-200').style.display = 'none';
                             }
                         })
@@ -633,7 +653,7 @@
                                             </label>
                                         </template>
                                         <input x-model="formData.riwayat_penyakit_lain" type="text"
-                                            name="riwayat_penyakit_lain" placeholder="Lainnya"
+                                            name="ri ripewayat_penyakit_lain" placeholder="Lainnya"
                                             class="col-span-3 p-2 border rounded-md">
                                     </div>
                                 </div>
@@ -656,14 +676,12 @@
                                             this.errorMessage = '';
                                             const file = event.target.files[0];
                                     
-                                            // Reset jika tidak ada file
                                             if (!file) {
                                                 this.errorMessage = 'Silakan pilih file KTP';
                                                 this.isUploading = false;
                                                 return;
                                             }
                                     
-                                            // Validasi ukuran file (max 2MB)
                                             if (file.size > 2 * 1024 * 1024) {
                                                 this.errorMessage = 'Ukuran file terlalu besar (maksimal 2MB)';
                                                 event.target.value = '';
@@ -671,7 +689,6 @@
                                                 return;
                                             }
                                     
-                                            // Validasi tipe file
                                             const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
                                             if (!allowedTypes.includes(file.type)) {
                                                 this.errorMessage = 'Hanya file JPG/PNG/PDF yang diperbolehkan';
@@ -680,7 +697,6 @@
                                                 return;
                                             }
                                     
-                                            // Preview untuk gambar
                                             if (file.type.includes('image')) {
                                                 const reader = new FileReader();
                                                 reader.onload = (e) => {
@@ -689,13 +705,11 @@
                                                 };
                                                 reader.readAsDataURL(file);
                                             } else {
-                                                // Untuk PDF tidak ada preview
                                                 this.ktpPreview = null;
                                                 this.isUploading = false;
                                             }
                                         }
                                     }" class="space-y-2">
-                                        <!-- Preview Gambar -->
                                         <template x-if="ktpPreview">
                                             <div class="relative w-full max-w-md">
                                                 <img :src="ktpPreview" alt="Preview KTP"
@@ -713,11 +727,9 @@
                                             </div>
                                         </template>
 
-                                        <!-- Error Message dari JavaScript -->
                                         <div x-show="errorMessage || errors.ktp" x-text="errorMessage || errors.ktp"
                                             class="text-sm text-red-500" x-cloak></div>
 
-                                        <!-- Upload Area -->
                                         <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
                                             <div class="relative">
                                                 <input type="file" name="ktp" id="ktp" required
@@ -755,202 +767,251 @@
                                     </div>
                                 </div>
 
-                                <!-- Riwayat organisasi -->
                                 <div class="col-span-2">
                                     <input x-model="formData.riwayat_organisasi" type="text"
                                         name="riwayat_organisasi" placeholder="Riwayat Organisasi"
                                         class="w-full p-2 border rounded-md">
-                                    <button type="button" class="mt-2 text-sm text-blue-600 hover:underline">+
-                                        Tambahkan
-                                        riwayat organisasi</button>
+                                    {{-- <button type="button" class="mt-2 text-sm text-blue-600 hover:underline"
+                                        @click="formData.riwayat_organisasi += formData.riwayat_organisasi ? ', ' + formData.riwayat_organisasi : ''">
+                                        +
+                                        Tambahkan riwayat organisasi
+                                    </button> --}}
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Kontainer Data Orang Tua -->
-                        <div x-show="tab === 'data_orang_tua'">
-                            <div class="w-3/4 mt-8 space-y-4">
-                                <input x-model="formData.nama_ayah" name="nama_ayah" type="text"
-                                    placeholder="Nama Ayah"
-                                    class="w-full p-3 border rounded-lg >
-                                    <div x-show="errors.nama_ayah"
-                                    x-text="errors.nama_ayah" class="mt-1 text-sm text-red-500">
-                                @error('nama_ayah')
-                                    <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
-                                @enderror
+                    <!-- Kontainer Data Orang Tua -->
+                    <div x-show="tab === 'data_orang_tua'">
+                        <div class="w-3/4 mt-8 space-y-4">
+                            <input x-model="formData.nama_ayah" name="nama_ayah" type="text"
+                                placeholder="Nama Ayah"
+                                class="w-full p-3 border rounded-lg @error('nama_ayah') border-red-500 @enderror"
+                                required>
+                            <div x-show="errors.nama_ayah" x-text="errors.nama_ayah"
+                                class="mt-1 text-sm text-red-500"></div>
+                            @error('nama_ayah')
+                                <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                            @enderror
 
-                                <select x-model="formData.pekerjaan_ayah" name="pekerjaan_ayah"
-                                    class="w-full p-3 border rounded-lg @error('pekerjaan_ayah') border-red-500 @enderror"
-                                    required>
-                                    <option value="">Pekerjaan Ayah</option>
-                                    <option>Petani</option>
-                                    <option>PNS</option>
-                                    <option>Wiraswasta</option>
-                                </select>
-                                <div x-show="errors.pekerjaan_ayah" x-text="errors.pekerjaan_ayah"
-                                    class="mt-1 text-sm text-red-500"></div>
-                                @error('pekerjaan_ayah')
-                                    <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
-                                @enderror
+                            <select x-model="formData.pekerjaan_ayah" name="pekerjaan_ayah"
+                                class="w-full p-3 border rounded-lg @error('pekerjaan_ayah') border-red-500 @enderror"
+                                required>
+                                <option value="">Pekerjaan Ayah</option>
+                                <option>Petani</option>
+                                <option>PNS</option>
+                                <option>Wiraswasta</option>
+                            </select>
+                            <div x-show="errors.pekerjaan_ayah" x-text="errors.pekerjaan_ayah"
+                                class="mt-1 text-sm text-red-500"></div>
+                            @error('pekerjaan_ayah')
+                                <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                            @enderror
 
-                                <input x-model="formData.nama_ibu" name="nama_ibu" type="text"
-                                    placeholder="Nama Ibu"
-                                    class="w-full p-3 border rounded-lg @error('nama_ibu') border-red-500 @enderror"
-                                    required>
-                                <div x-show="errors.nama_ibu" x-text="errors.nama_ibu"
-                                    class="mt-1 text-sm text-red-500"></div>
-                                @error('nama_ibu')
-                                    <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
-                                @enderror
-
-                                <select x-model="formData.pekerjaan_ibu" name="pekerjaan_ibu"
-                                    class="w-full p-3 border rounded-lg @error('pekerjaan_ibu') border-red-500 @enderror"
-                                    required>
-                                    <option value="">Pekerjaan Ibu</option>
-                                    <option>Ibu Rumah Tangga</option>
-                                    <option>PNS</option>
-                                    <option>Wiraswasta</option>
-                                </select>
-                                <div x-show="errors.pekerjaan_ibu" x-text="errors.pekerjaan_ibu"
-                                    class="mt-1 text-sm text-red-500"></div>
-                                @error('pekerjaan_ibu')
-                                    <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
-                                @enderror
+                            <input x-model="formData.nama_ibu" name="nama_ibu" type="text" placeholder="Nama Ibu"
+                                class="w-full p-3 border rounded-lg @error('nama_ibu') border-red-500 @enderror"
+                                required>
+                            <div x-show="errors.nama_ibu" x-text="errors.nama_ibu" class="mt-1 text-sm text-red-500">
                             </div>
+                            @error('nama_ibu')
+                                <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                            @enderror
+
+                            <select x-model="formData.pekerjaan_ibu" name="pekerjaan_ibu"
+                                class="w-full p-3 border rounded-lg @error('pekerjaan_ibu') border-red-500 @enderror"
+                                required>
+                                <option value="">Pekerjaan Ibu</option>
+                                <option>Ibu Rumah Tangga</option>
+                                <option>PNS</option>
+                                <option>Wiraswasta</option>
+                            </select>
+                            <div x-show="errors.pekerjaan_ibu" x-text="errors.pekerjaan_ibu"
+                                class="mt-1 text-sm text-red-500"></div>
+                            @error('pekerjaan_ibu')
+                                <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                            @enderror
                         </div>
+                    </div>
 
-
-                        <!-- Kontainer Karakteristik: Muncul saat tab "karakteristik" -->
-                        <div x-show="tab === 'karakteristik'">
-                            <div class="flex justify-between w-full gap-8 px-10 mt-8">
-                                <div>
-                                    <h3 class="mb-2 text-2xl font-semibold">Karakteristik Diri Anda <span
-                                            class="text-red-500">*</span></h3>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <template
-                                            x-for="item in ['Beriman', 'Seiman', 'Rajin', 'Setia', 'Sabar', 'Bertanggungjawab', 'Jujur', 'Sederhana', 'Ramah', 'Tertutup', 'Supel', 'Perhatian', 'Romantis', 'Cuek', 'Berpendidikan', 'Berpengalaman', 'Penurut', 'Ikhlas']"
-                                            :key="item">
-                                            <label>
-                                                <input type="checkbox" name="karakteristik_diri[]"
-                                                    x-model="formData.karakteristik_diri" :value="item"
-                                                    class="mr-2">
-                                                <span x-text="item"></span>
-                                            </label>
-                                        </template>
-                                        <input x-model="formData.karakteristik_diri_lain" type="text"
-                                            name="karakteristik_diri_lain" placeholder="Lainnya"
-                                            class="w-full p-2 mt-2 border rounded-md @error('karakteristik_diri_lain') border-red-500 @enderror">
-                                        <div x-show="errors.karakteristik_diri" x-text="errors.karakteristik_diri"
-                                            class="mt-1 text-sm text-red-500"></div>
-                                        @error('karakteristik_diri')
-                                            <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
-                                        @enderror
-                                        @error('karakteristik_diri_lain')
-                                            <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 class="mb-2 text-2xl font-semibold">Karakteristik Calon Pasangan Anda <span
-                                            class="text-red-500">*</span></h3>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <template
-                                            x-for="item in ['Beriman', 'Seiman', 'Rajin', 'Setia', 'Sabar', 'Bertanggungjawab', 'Jujur', 'Sederhana', 'Ramah', 'Tertutup', 'Supel', 'Perhatian', 'Romantis', 'Cuek', 'Berpendidikan', 'Berpengalaman', 'Penurut', 'Ikhlas', 'Seumuran', 'Lebih Tua', 'Lebih Muda', 'Tidak Memandang Usia']"
-                                            :key="item">
-                                            <label>
-                                                <input type="checkbox" name="karakteristik_pasangan[]"
-                                                    x-model="formData.karakteristik_pasangan" :value="item"
-                                                    class="mr-2">
-                                                <span x-text="item"></span>
-                                            </label>
-                                        </template>
-                                        <input x-model="formData.karakteristik_pasangan_lain" type="text"
-                                            name="karakteristik_pasangan_lain" placeholder="Lainnya"
-                                            class="w-full p-2 mt-2 border rounded-md @error('karakteristik_pasangan_lain') border-red-500 @enderror">
-                                        <div x-show="errors.karakteristik_pasangan"
-                                            x-text="errors.karakteristik_pasangan" class="mt-1 text-sm text-red-500">
+                    <!-- Kontainer Karakteristik -->
+                    <div x-show="tab === 'karakteristik'">
+                        <div class="flex justify-between w-full gap-8 px-10 mt-8">
+                            <!-- Karakteristik Diri -->
+                            <div>
+                                <h3 class="mb-2 text-2xl font-semibold">Karakteristik Diri Anda <span
+                                        class="text-red-500">*</span></h3>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <template
+                                        x-for="item in ['Beriman', 'Rajin', 'Setia', 'Sabar', 'Bertanggungjawab', 'Jujur', 'Sederhana', 'Ramah', 'Tertutup', 'Supel', 'Perhatian', 'Romantis', 'Cuek', 'Berpendidikan', 'Berpengalaman', 'Penurut', 'Ikhlas']"
+                                        :key="item">
+                                        <label>
+                                            <input type="checkbox" name="karakteristik_diri[]"
+                                                x-model="formData.karakteristik_diri" :value="item"
+                                                class="mr-2">
+                                            <span x-text="item"></span>
+                                        </label>
+                                    </template>
+                                    <template x-for="(item, index) in formData.karakteristik_diri_lain"
+                                        :key="index">
+                                        <div class="flex items-center gap-2">
+                                            <input x-model="formData.karakteristik_diri_lain[index]" type="text"
+                                                :name="'karakteristik_diri_lain[' + index + ']'" placeholder="Lainnya"
+                                                class="w-full p-2 mt-2 border rounded-md"
+                                                :class="{ 'border-red-500': errors['karakteristik_diri_lain.' + index] }">
+                                            <button type="button" @click="removeKarakteristikDiriLain(index)"
+                                                class="p-1 mt-2 text-red-500 hover:text-red-700">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5"
+                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
                                         </div>
-                                        @error('karakteristik_pasangan')
-                                            <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
-                                        @enderror
-                                        @error('karakteristik_pasangan_lain')
-                                            <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
-                                        @enderror
-                                    </div>
+                                        <div x-show="errors['karakteristik_diri_lain.' + index]"
+                                            x-text="errors['karakteristik_diri_lain.' + index]"
+                                            class="mt-1 text-sm text-red-500"></div>
+                                    </template>
+                                    <button type="button" @click="addKarakteristikDiriLain()"
+                                        class="mt-2 text-sm text-blue-600 hover:underline">+ Tambahkan karakteristik
+                                        lainnya</button>
+                                    <div x-show="errors.karakteristik_diri" x-text="errors.karakteristik_diri"
+                                        class="mt-1 text-sm text-red-500"></div>
+                                    @error('karakteristik_diri')
+                                        <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                    @enderror
+                                    <!-- Display general errors for karakteristik_diri_lain -->
+                                    @if ($errors->has('karakteristik_diri_lain.*'))
+                                        <div class="mt-1 text-sm text-red-500">
+                                            @foreach ($errors->get('karakteristik_diri_lain.*') as $error)
+                                                {{ $error[0] }}<br>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- Karakteristik Calon Pasangan -->
+                            <div>
+                                <h3 class="mb-2 text-2xl font-semibold">Karakteristik Calon Pasangan Anda <span
+                                        class="text-red-500">*</span></h3>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <template
+                                        x-for="item in ['Beriman', 'Rajin', 'Setia', 'Sabar', 'Bertanggungjawab', 'Jujur', 'Sederhana', 'Ramah', 'Tertutup', 'Supel', 'Perhatian', 'Romantis', 'Cuek', 'Berpendidikan', 'Berpengalaman', 'Penurut', 'Ikhlas', 'Seumuran', 'Lebih Tua', 'Lebih Muda', 'Tidak Memandang Usia']"
+                                        :key="item">
+                                        <label>
+                                            <input type="checkbox" name="karakteristik_pasangan[]"
+                                                x-model="formData.karakteristik_pasangan" :value="item"
+                                                class="mr-2">
+                                            <span x-text="item"></span>
+                                        </label>
+                                    </template>
+                                    <template x-for="(item, index) in formData.karakteristik_pasangan_lain"
+                                        :key="index">
+                                        <div class="flex items-center gap-2">
+                                            <input x-model="formData.karakteristik_pasangan_lain[index]"
+                                                type="text" :name="'karakteristik_pasangan_lain[' + index + ']'"
+                                                placeholder="Lainnya" class="w-full p-2 mt-2 border rounded-md"
+                                                :class="{ 'border-red-500': errors['karakteristik_pasangan_lain.' + index] }">
+                                            <button type="button" @click="removeKarakteristikPasanganLain(index)"
+                                                class="p-1 mt-2 text-red-500 hover:text-red-700">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5"
+                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div x-show="errors['karakteristik_pasangan_lain.' + index]"
+                                            x-text="errors['karakteristik_pasangan_lain.' + index]"
+                                            class="mt-1 text-sm text-red-500"></div>
+                                    </template>
+                                    <button type="button" @click="addKarakteristikPasanganLain()"
+                                        class="mt-2 text-sm text-blue-600 hover:underline">+ Tambahkan karakteristik
+                                        lainnya</button>
+                                    <div x-show="errors.karakteristik_pasangan" x-text="errors.karakteristik_pasangan"
+                                        class="mt-1 text-sm text-red-500"></div>
+                                    @error('karakteristik_pasangan')
+                                        <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                                    @enderror
+                                    <!-- Display general errors for karakteristik_pasangan_lain -->
+                                    @if ($errors->has('karakteristik_pasangan_lain.*'))
+                                        <div class="mt-1 text-sm text-red-500">
+                                            @foreach ($errors->get('karakteristik_pasangan_lain.*') as $error)
+                                                {{ $error[0] }}<br>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
-
-
-                        <div x-show="tab === 'pandangan'">
-                            <div class="w-3/4 mt-8 space-y-4">
-                                <input x-model="formData.visi_pernikahan" name="visi_pernikahan" type="text"
-                                    placeholder="Visi Pernikahan"
-                                    class="w-full p-3 border rounded-lg @error('visi_pernikahan') border-red-500 @enderror"
-                                    required>
-                                <div x-show="errors.visi_pernikahan" x-text="errors.visi_pernikahan"
-                                    class="mt-1 text-sm text-red-500"></div>
-                                @error('visi_pernikahan')
-                                    <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
-                                @enderror
-
-                                <input x-model="formData.misi_pernikahan" name="misi_pernikahan" type="text"
-                                    placeholder="Misi Pernikahan"
-                                    class="w-full p-3 border rounded-lg @error('misi_pernikahan') border-red-500 @enderror"
-                                    required>
-                                <div x-show="errors.misi_pernikahan" x-text="errors.misi_pernikahan"
-                                    class="mt-1 text-sm text-red-500"></div>
-                                @error('misi_pernikahan')
-                                    <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
-                                @enderror
-
-                                <input x-model="formData.cita_pernikahan" name="cita_pernikahan" type="text"
-                                    placeholder="Cita-cita Pernikahan"
-                                    class="w-full p-3 border rounded-lg @error('cita_pernikahan') border-red-500 @enderror"
-                                    required>
-                                <div x-show="errors.cita_pernikahan" x-text="errors.cita_pernikahan"
-                                    class="mt-1 text-sm text-red-500"></div>
-                                @error('cita_pernikahan')
-                                    <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
-                                @enderror
-
-                            </div>
-                        </div>
-
                     </div>
+
                     <div x-show="tab === 'pandangan'">
-                        <div class="flex justify-between mt-6">
-                            <x-secondary-button @click="tab = 'karakteristik'">Kembali</x-secondary-button>
-                            <x-primary-button type="submit">Kirim</x-primary-button>
+                        <div class="w-3/4 mt-8 space-y-4">
+                            <input x-model="formData.visi_pernikahan" name="visi_pernikahan" type="text"
+                                placeholder="Visi Pernikahan"
+                                class="w-full p-3 border rounded-lg @error('visi_pernikahan') border-red-500 @enderror"
+                                required>
+                            <div x-show="errors.visi_pernikahan" x-text="errors.visi_pernikahan"
+                                class="mt-1 text-sm text-red-500"></div>
+                            @error('visi_pernikahan')
+                                <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                            @enderror
+
+                            <input x-model="formData.misi_pernikahan" name="misi_pernikahan" type="text"
+                                placeholder="Misi Pernikahan"
+                                class="w-full p-3 border rounded-lg @error('misi_pernikahan') border-red-500 @enderror"
+                                required>
+                            <div x-show="errors.misi_pernikahan" x-text="errors.misi_pernikahan"
+                                class="mt-1 text-sm text-red-500"></div>
+                            @error('misi_pernikahan')
+                                <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                            @enderror
+
+                            <input x-model="formData.cita_pernikahan" name="cita_pernikahan" type="text"
+                                placeholder="Cita-cita Pernikahan"
+                                class="w-full p-3 border rounded-lg @error('cita_pernikahan') border-red-500 @enderror"
+                                required>
+                            <div x-show="errors.cita_pernikahan" x-text="errors.cita_pernikahan"
+                                class="mt-1 text-sm text-red-500"></div>
+                            @error('cita_pernikahan')
+                                <div class="mt-1 text-sm text-red-500">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
-                </form>
-            </template>
 
-            <!-- Navigation buttons -->
-            <div x-show="tab === 'data_diri' && !hasRegistered">
-                <div class="flex justify-between mt-6">
-                    <x-secondary-button @click="tab = 'informasi'">Kembali</x-secondary-button>
-                    <x-primary-button
-                        @click="if(validateForm()) { tab = 'data_orang_tua' }">Selanjutnya</x-primary-button>
-                </div>
-            </div>
-
-            <div x-show="tab === 'data_orang_tua' && !hasRegistered">
-                <div class="flex justify-between mt-6">
-                    <x-secondary-button @click="tab = 'data_diri'">Kembali</x-secondary-button>
-                    <x-primary-button
-                        @click="if(validateForm()) { tab = 'karakteristik' }">Selanjutnya</x-primary-button>
-                </div>
-            </div>
-
-            <div x-show="tab === 'karakteristik' && !hasRegistered">
-                <div class="flex justify-between mt-6">
-                    <x-secondary-button @click="tab = 'data_orang_tua'">Kembali</x-secondary-button>
-                    <x-primary-button @click="if(validateForm()) { tab = 'pandangan' }">Selanjutnya</x-primary-button>
-                </div>
+        </div>
+        <div x-show="tab === 'pandangan'">
+            <div class="flex justify-between mt-6">
+                <x-secondary-button @click="tab = 'karakteristik'">Kembali</x-secondary-button>
+                <x-primary-button type="submit">Kirim</x-primary-button>
             </div>
         </div>
+        </form>
+        </template>
+
+        <!-- Navigation buttons -->
+        <div x-show="tab === 'data_diri' && !hasRegistered">
+            <div class="flex justify-between mt-6">
+                <x-secondary-button @click="tab = 'informasi'">Kembali</x-secondary-button>
+                <x-primary-button @click="if(validateForm()) { tab = 'data_orang_tua' }">Selanjutnya</x-primary-button>
+            </div>
+        </div>
+
+        <div x-show="tab === 'data_orang_tua' && !hasRegistered">
+            <div class="flex justify-between mt-6">
+                <x-secondary-button @click="tab = 'data_diri'">Kembali</x-secondary-button>
+                <x-primary-button @click="if(validateForm()) { tab = 'karakteristik' }">Selanjutnya</x-primary-button>
+            </div>
+        </div>
+
+        <div x-show="tab === 'karakteristik' && !hasRegistered">
+            <div class="flex justify-between mt-6">
+                <x-secondary-button @click="tab = 'data_orang_tua'">Kembali</x-secondary-button>
+                <x-primary-button @click="if(validateForm()) { tab = 'pandangan' }">Selanjutnya</x-primary-button>
+            </div>
+        </div>
+    </div>
     </div>
 
     <x-footer />

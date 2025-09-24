@@ -337,10 +337,29 @@
                             <div class="flex items-center">
                                 <span class="mr-2">•</span>
                                 <span>{{ $kriteria }}</span>
-                                @if (in_array($kriteria, $kriteriaDiriWanita))
-                                    <span class="ml-2 text-green-500">✓</span>
+                                @php
+                                    $ageCriteria = ['Seumuran', 'Lebih Tua', 'Lebih Muda', 'Tidak Memandang Usia'];
+                                    $lakiAge = $lakiLaki->age;
+                                    $wanitaAge = $wanita->age;
+                                @endphp
+                                @if (in_array($kriteria, $ageCriteria))
+                                    @if ($kriteria === 'Tidak Memandang Usia')
+                                        <span class="ml-2 text-green-500">✓</span>
+                                    @elseif ($kriteria === 'Seumuran' && abs($lakiAge - $wanitaAge) <= 2)
+                                        <span class="ml-2 text-green-500">✓</span>
+                                    @elseif ($kriteria === 'Lebih Tua' && $wanitaAge > $lakiAge)
+                                        <span class="ml-2 text-green-500">✓</span>
+                                    @elseif ($kriteria === 'Lebih Muda' && $wanitaAge < $lakiAge)
+                                        <span class="ml-2 text-green-500">✓</span>
+                                    @else
+                                        <span class="ml-2 text-red-500">✗</span>
+                                    @endif
                                 @else
-                                    <span class="ml-2 text-red-500">✗</span>
+                                    @if (in_array($kriteria, $kriteriaDiriWanita))
+                                        <span class="ml-2 text-green-500">✓</span>
+                                    @else
+                                        <span class="ml-2 text-red-500">✗</span>
+                                    @endif
                                 @endif
                             </div>
                         @endforeach
@@ -358,10 +377,29 @@
                             <div class="flex items-center">
                                 <span class="mr-2">•</span>
                                 <span>{{ $kriteria }}</span>
-                                @if (in_array($kriteria, $kriteriaDiriLaki))
-                                    <span class="ml-2 text-green-500">✓</span>
+                                @php
+                                    $ageCriteria = ['Seumuran', 'Lebih Tua', 'Lebih Muda', 'Tidak Memandang Usia'];
+                                    $lakiAge = $lakiLaki->age;
+                                    $wanitaAge = $wanita->age;
+                                @endphp
+                                @if (in_array($kriteria, $ageCriteria))
+                                    @if ($kriteria === 'Tidak Memandang Usia')
+                                        <span class="ml-2 text-green-500">✓</span>
+                                    @elseif ($kriteria === 'Seumuran' && abs($wanitaAge - $lakiAge) <= 2)
+                                        <span class="ml-2 text-green-500">✓</span>
+                                    @elseif ($kriteria === 'Lebih Tua' && $lakiAge > $wanitaAge)
+                                        <span class="ml-2 text-green-500">✓</span>
+                                    @elseif ($kriteria === 'Lebih Muda' && $lakiAge < $wanitaAge)
+                                        <span class="ml-2 text-green-500">✓</span>
+                                    @else
+                                        <span class="ml-2 text-red-500">✗</span>
+                                    @endif
                                 @else
-                                    <span class="ml-2 text-red-500">✗</span>
+                                    @if (in_array($kriteria, $kriteriaDiriLaki))
+                                        <span class="ml-2 text-green-500">✓</span>
+                                    @else
+                                        <span class="ml-2 text-red-500">✗</span>
+                                    @endif
                                 @endif
                             </div>
                         @endforeach

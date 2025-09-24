@@ -13,6 +13,7 @@ class Kriteria extends Model
         "kriteria_pasangan",
     ];
 
+
     /**
      * Accessor: Get the kriteria_diri as a PHP array.
      * Use $kriteria->kriteria_diri_array in your Blade.

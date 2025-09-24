@@ -146,7 +146,11 @@ class PendaftaranController extends Controller
             'misi_pernikahan' => 'required|string|max:255',
             'cita_pernikahan' => 'required|string|max:255',
             'karakteristik_diri' => 'required|array|min:1',
+            'karakteristik_diri_lain' => 'nullable|array',
+            'karakteristik_diri_lain.*' => 'nullable|string|max:255',
             'karakteristik_pasangan' => 'required|array|min:1',
+            'karakteristik_pasangan_lain' => 'nullable|array',
+            'karakteristik_pasangan_lain.*' => 'nullable|string|max:255',
         ]);
 
         try {
@@ -202,15 +206,15 @@ class PendaftaranController extends Controller
                 'cita_pernikahan' => $request->input('cita_pernikahan'),
             ]);
 
+            // Merge karakteristik_diri and karakteristik_diri_lain
             $karakteristik_diri = $request->input('karakteristik_diri', []);
-            if ($request->filled('karakteristik_diri_lain')) {
-                $karakteristik_diri[] = $request->input('karakteristik_diri_lain');
-            }
+            $karakteristik_diri_lain = array_filter($request->input('karakteristik_diri_lain', []), fn($value) => !empty(trim($value)));
+            $karakteristik_diri = array_merge($karakteristik_diri, $karakteristik_diri_lain);
 
+            // Merge karakteristik_pasangan and karakteristik_pasangan_lain
             $karakteristik_pasangan = $request->input('karakteristik_pasangan', []);
-            if ($request->filled('karakteristik_pasangan_lain')) {
-                $karakteristik_pasangan[] = $request->input('karakteristik_pasangan_lain');
-            }
+            $karakteristik_pasangan_lain = array_filter($request->input('karakteristik_pasangan_lain', []), fn($value) => !empty(trim($value)));
+            $karakteristik_pasangan = array_merge($karakteristik_pasangan, $karakteristik_pasangan_lain);
 
             Kriteria::create([
                 'user_id' => Auth::id(),
